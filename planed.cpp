@@ -5,21 +5,51 @@ import casein;
 import dotz;
 import quack;
 
+enum brush_type { bt_nil = 0, bt_water, bt_grass, bt_dirt };
+
 static constexpr const auto plane_w = 16;
 static constexpr const auto plane_h = 32;
 
-static dotz::ivec2 g_buffer[plane_h][plane_w] {};
+static brush_type g_buffer[plane_h][plane_w] {};
+static brush_type g_brush {};
+
 static dotz::ivec2 g_cursor {};
-static dotz::ivec2 g_brush { 1, 2 };
 
 static auto & at(dotz::ivec2 p) { return g_buffer[p.y][p.x]; }
 
-static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 brush) {
+static constexpr dotz::ivec2 uv0(brush_type a, brush_type b) {
+  switch (a) {
+    case bt_water:
+      if (b == bt_water) return { 1, 2 };
+      if (b == bt_grass) return { 1, 2 };
+      break;
+    case bt_grass:
+      if (b == bt_grass) return { 4, 2 };
+      if (b == bt_water) return { 4, 2 };
+      if (b == bt_dirt) return { 7, 2 };
+      break;
+    case bt_dirt:
+      if (b == bt_dirt) return { 10, 2 };
+      if (b == bt_grass) return { 10, 2 };
+      break;
+    default: break;
+  }
+  return {};
+}
+static constexpr dotz::ivec2 uv0(brush_type a, brush_type b, dotz::ivec2 d) {
+  auto p = uv0(a, b);
+  return p == 0 ? 0 : p + d;
+}
+static constexpr dotz::ivec2 uv0(brush_type a) { return uv0(a, a); }
+
+static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 uv0) {
+  if (uv0 == 0) return;
+
   *i++ = {
     .position = p,
     .size = { 1 },
-    .uv0 = brush / 16.f,
-    .uv1 = (brush + 1) / 16.f,
+    .uv0 = uv0 / 16.f,
+    .uv1 = (uv0 + 1) / 16.f,
     .multiplier = { 1 },
   };
 }
@@ -27,21 +57,21 @@ static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 brush) {
 static void update_data(quack::instance *& i) {
   for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
     for (p.x = 0; p.x < plane_w; p.x++) {
-      blit(i, p * 2, at(p));
+      blit(i, p * 2, uv0(at(p)));
 
       constexpr const dotz::ivec2 dr { 1, 0 };
       constexpr const dotz::ivec2 db { 0, 1 };
       if (p.x < plane_w - 1) {
         auto l = at(p);
         auto r = at(p + dr);
-        if (l == r) blit(i, p * 2 + dr, l);
-        else blit(i, p * 2 + dr, l + dr);
+        if (l == r) blit(i, p * 2 + dr, uv0(l, r));
+        else blit(i, p * 2 + dr, uv0(l, r, dr));
       }
       if (p.y < plane_h - 1) {
         auto t = at(p);
         auto b = at(p + db);
-        if (t == b) blit(i, p * 2 + db, t);
-        else blit(i, p * 2 + db, t + db);
+        if (t == b) blit(i, p * 2 + db, uv0(t, b));
+        else blit(i, p * 2 + db, uv0(t, b, db));
       }
       if (p.x < plane_w - 1 && p.y < plane_h - 1) {
         auto tl = at(p);
@@ -49,14 +79,15 @@ static void update_data(quack::instance *& i) {
         auto bl = at(p + db);
         auto br = at(p + 1);
         auto pp = p * 2 + 1;
-        if (tl == tr && tl == bl && tl == br) blit(i, pp, tl);
-        else if (tl == tr && bl == br) blit(i, pp, tl + db);
-        else if (tl == bl && tr == br) blit(i, pp, tl + dr);
-        else if (tl == br && tr == bl) (void)0;
-        else if (tl == tr && tl == bl) blit(i, pp, br - dr - db);
-        else if (tl == tr && tl == br) blit(i, pp, bl + dr - db);
-        else if (tl == bl && tl == br) blit(i, pp, tr - dr + db);
-        else blit(i, pp, tl + dr + db);
+        if (!tl || !tr || !bl || !br) blit(i, pp, 0);
+        else if (tl == tr && tl == bl && tl == br) blit(i, pp, uv0(tl));
+        else if (tl == tr && bl == br) blit(i, pp, uv0(tl, bl, db));
+        else if (tl == bl && tr == br) blit(i, pp, uv0(tl, tr, dr));
+        else if (tl == br && tr == bl) blit(i, pp, 0);
+        else if (tl == tr && tl == bl) blit(i, pp, uv0(br, tl, -dr - db));
+        else if (tl == tr && tl == br) blit(i, pp, uv0(bl, tl, dr - db));
+        else if (tl == bl && tl == br) blit(i, pp, uv0(tr, tl, -dr + db));
+        else blit(i, pp, uv0(tl, br, dr + db));
       }
     }
   }
@@ -65,7 +96,7 @@ static void update_data(quack::instance *& i) {
     .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
   };
-  blit(i, g_cursor * 2.f, g_brush);
+  blit(i, g_cursor * 2.f, uv0(g_brush));
 }
 static void update_data() {
   using namespace quack::donald;
@@ -86,10 +117,9 @@ static constexpr auto move(int dx, int dy) {
     update_data();
   };
 }
-static constexpr auto brush(unsigned n) {
+static constexpr auto brush(brush_type n) {
   return [=] {
-    g_brush.x = 1 + 3 * n;
-    g_brush.y = 2;
+    g_brush = n;
     update_data();
   };
 }
@@ -135,10 +165,10 @@ struct init {
     handle(KEY_DOWN, K_LEFT, move(-1, 0));
     handle(KEY_DOWN, K_RIGHT, move(1, 0));
 
-    handle(KEY_DOWN, K_1, brush(0));
-    handle(KEY_DOWN, K_2, brush(1));
-    handle(KEY_DOWN, K_3, brush(2));
-    handle(KEY_DOWN, K_4, brush(3));
+    handle(KEY_DOWN, K_0, brush(bt_nil));
+    handle(KEY_DOWN, K_1, brush(bt_water));
+    handle(KEY_DOWN, K_2, brush(bt_grass));
+    handle(KEY_DOWN, K_3, brush(bt_dirt));
 
     handle(KEY_DOWN, K_SPACE, stamp);
     handle(KEY_DOWN, K_L, fill);
