@@ -5,8 +5,12 @@ import casein;
 import dotz;
 import quack;
 
-static dotz::ivec2 g_cursor{};
-static dotz::ivec2 g_brush{ 1, 2 };
+static constexpr const auto plane_w = 32;
+static constexpr const auto plane_h = 64;
+
+static dotz::ivec2 g_buffer[plane_h][plane_w] {};
+static dotz::ivec2 g_cursor {};
+static dotz::ivec2 g_brush { 1, 2 };
 
 static void update_data(quack::instance *& i) {
   *i++ = {
@@ -27,7 +31,7 @@ static void update_data() { quack::donald::data(::update_data); }
 static constexpr auto move(int dx, int dy) {
   return [=] {
     auto c = g_cursor + dotz::ivec2 { dx, dy };
-    g_cursor = dotz::clamp(c, { 0 }, { 31 });
+    g_cursor = dotz::clamp(c, { 0 }, { plane_w - 1, plane_h - 1 });
     update_data();
   };
 }
@@ -46,8 +50,8 @@ struct init {
 
     clear_colour({ 0.0f, 0.0f, 0.0f, 1.f });
     push_constants({
-        .grid_pos = { 16, 16 },
-        .grid_size = { 32, 32 },
+        .grid_pos = { plane_w / 2 },
+        .grid_size = { plane_w },
     });
     max_quads(1024);
 
