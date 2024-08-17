@@ -78,6 +78,23 @@ static void stamp() {
   update_data();
 }
 
+static void fill(int x, int y) {
+  if (x < 0 || x >= plane_w || y < 0 || y >= plane_h) return;
+
+  auto & p = g_buffer[y][x];
+  if (p != dotz::ivec2 {}) return;
+
+  p = g_brush_d;
+  fill(x - 1, y);
+  fill(x + 1, y);
+  fill(x, y - 1);
+  fill(x, y + 1);
+}
+static void fill() {
+  fill(g_cursor.x, g_cursor.y);
+  update_data();
+}
+
 struct init {
   init() {
     using namespace casein;
@@ -108,5 +125,6 @@ struct init {
     handle(KEY_DOWN, K_C, brush_d(+1, +1));
 
     handle(KEY_DOWN, K_SPACE, stamp);
+    handle(KEY_DOWN, K_L, fill);
   }
 } i;
