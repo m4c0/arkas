@@ -137,6 +137,8 @@ struct init {
 
     handle(KEY_DOWN, K_1, brush(0));
     handle(KEY_DOWN, K_2, brush(1));
+    handle(KEY_DOWN, K_3, brush(2));
+    handle(KEY_DOWN, K_4, brush(3));
 
     handle(KEY_DOWN, K_SPACE, stamp);
     handle(KEY_DOWN, K_L, fill);
