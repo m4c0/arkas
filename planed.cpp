@@ -26,7 +26,17 @@ static void update_data(quack::instance *& i) {
     .multiplier = { 1 },
   };
 }
-static void update_data() { quack::donald::data(::update_data); }
+static void update_data() {
+  using namespace quack::donald;
+
+  constexpr const auto hpw = plane_w / 2;
+  auto y = dotz::clamp(g_cursor.y, hpw, plane_h - hpw);
+  push_constants({
+      .grid_pos = { hpw, y },
+      .grid_size = { plane_w },
+  });
+  data(::update_data);
+}
 
 static constexpr auto move(int dx, int dy) {
   return [=] {
@@ -49,10 +59,6 @@ struct init {
     using namespace quack::donald;
 
     clear_colour({ 0.0f, 0.0f, 0.0f, 1.f });
-    push_constants({
-        .grid_pos = { plane_w / 2 },
-        .grid_size = { plane_w },
-    });
     max_quads(1024);
 
     atlas("atlas.png");
