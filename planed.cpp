@@ -78,20 +78,23 @@ static void stamp() {
   update_data();
 }
 
-static void fill(int x, int y) {
+static void fill(int x, int y, dotz::ivec2 st) {
   if (x < 0 || x >= plane_w || y < 0 || y >= plane_h) return;
 
   auto & p = g_buffer[y][x];
-  if (p != dotz::ivec2 {}) return;
+  if (p != st) return;
 
   p = g_brush_d;
-  fill(x - 1, y);
-  fill(x + 1, y);
-  fill(x, y - 1);
-  fill(x, y + 1);
+  fill(x - 1, y, st);
+  fill(x + 1, y, st);
+  fill(x, y - 1, st);
+  fill(x, y + 1, st);
 }
 static void fill() {
-  fill(g_cursor.x, g_cursor.y);
+  auto p = g_buffer[g_cursor.y][g_cursor.x];
+  if (p == g_brush_d) return;
+
+  fill(g_cursor.x, g_cursor.y, p);
   update_data();
 }
 
