@@ -30,22 +30,29 @@ static void update_data(quack::instance *& i) {
     for (p.x = 0; p.x < plane_w; p.x++) {
       blit(i, p * 2, at(p));
 
+      constexpr const dotz::ivec2 dr { 1, 0 };
+      constexpr const dotz::ivec2 db { 0, 1 };
       if (p.x < plane_w - 1) {
         auto l = at(p);
-        auto r = at(p + dotz::ivec2 { 1, 0 });
-        if (l == r) blit(i, p * 2 + dotz::ivec2 { 1, 0 }, l);
+        auto r = at(p + dr);
+        if (l == r) blit(i, p * 2 + dr, l);
+        else blit(i, p * 2 + dr, l + dr);
       }
       if (p.y < plane_h - 1) {
         auto t = at(p);
-        auto b = at(p + dotz::ivec2 { 0, 1 });
-        if (t == b) blit(i, p * 2 + dotz::ivec2 { 0, 1 }, t);
+        auto b = at(p + db);
+        if (t == b) blit(i, p * 2 + db, t);
+        else blit(i, p * 2 + db, t + db);
       }
       if (p.x < plane_w - 1 && p.y < plane_h - 1) {
-        auto l = at(p);
-        auto r = at(p + dotz::ivec2 { 1, 0 });
-        auto b = at(p + dotz::ivec2 { 0, 1 });
-        auto rb = at(p + 1);
-        if (l == r && l == b && l == rb) blit(i, p * 2 + 1, l);
+        auto tl = at(p);
+        auto tr = at(p + dr);
+        auto bl = at(p + db);
+        auto br = at(p + 1);
+        auto pp = p * 2 + 1;
+        if (tl == tr && tl == bl && tl == br) blit(i, pp, tl);
+        else if (tl == tr && bl == br) blit(i, pp, tl + db);
+        else if (tl == bl && tr == br) blit(i, pp, tl + dr);
       }
     }
   }
