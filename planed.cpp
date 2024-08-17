@@ -13,16 +13,24 @@ static dotz::ivec2 g_cursor {};
 static dotz::ivec2 g_brush { 1, 2 };
 static dotz::ivec2 g_brush_d = g_brush;
 
+static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 brush) {
+  *i++ = {
+    .position = p,
+    .size = { 1 },
+    .uv0 = brush / 16.f,
+    .uv1 = (brush + 1) / 16.f,
+    .multiplier = { 1 },
+  };
+}
+
 static void update_data(quack::instance *& i) {
   for (auto y = 0; y < plane_h; y++) {
     for (auto x = 0; x < plane_w; x++) {
-      *i++ = {
-        .position = dotz::vec2 { x, y } * 2.f,
-        .size = { 1 },
-        .uv0 = g_buffer[y][x] / 16.f,
-        .uv1 = (g_buffer[y][x] + 1) / 16.f,
-        .multiplier = { 1 },
-      };
+      blit(i, dotz::vec2 { x, y } * 2.f, g_buffer[y][x]);
+    }
+  }
+  for (auto y = 0; y < plane_h - 1; y++) {
+    for (auto x = 0; x < plane_w - 1; x++) {
     }
   }
   *i++ = {
@@ -30,13 +38,7 @@ static void update_data(quack::instance *& i) {
     .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
   };
-  *i++ = {
-    .position = g_cursor * 2.f,
-    .size = { 1 },
-    .uv0 = g_brush_d / 16.f,
-    .uv1 = (g_brush_d + 1) / 16.f,
-    .multiplier = { 1 },
-  };
+  blit(i, g_cursor * 2.f, g_brush_d);
 }
 static void update_data() {
   using namespace quack::donald;
