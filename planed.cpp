@@ -11,7 +11,6 @@ static constexpr const auto plane_h = 32;
 static dotz::ivec2 g_buffer[plane_h][plane_w] {};
 static dotz::ivec2 g_cursor {};
 static dotz::ivec2 g_brush { 1, 2 };
-static dotz::ivec2 g_brush_d = g_brush;
 
 static auto & at(dotz::ivec2 p) { return g_buffer[p.y][p.x]; }
 
@@ -66,7 +65,7 @@ static void update_data(quack::instance *& i) {
     .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
   };
-  blit(i, g_cursor * 2.f, g_brush_d);
+  blit(i, g_cursor * 2.f, g_brush);
 }
 static void update_data() {
   using namespace quack::donald;
@@ -89,22 +88,14 @@ static constexpr auto move(int dx, int dy) {
 }
 static constexpr auto brush(unsigned n) {
   return [=] {
-    auto d = g_brush_d - g_brush;
     g_brush.x = 1 + 3 * n;
     g_brush.y = 2;
-    g_brush_d = g_brush + d;
-    update_data();
-  };
-}
-static constexpr auto brush_d(int dx, int dy) {
-  return [=] {
-    g_brush_d = g_brush + dotz::ivec2 { dx, dy };
     update_data();
   };
 }
 
 static void stamp() {
-  at(g_cursor) = g_brush_d;
+  at(g_cursor) = g_brush;
   update_data();
 }
 
@@ -114,7 +105,7 @@ static void fill(int x, int y, dotz::ivec2 st) {
   auto & p = g_buffer[y][x];
   if (p != st) return;
 
-  p = g_brush_d;
+  p = g_brush;
   fill(x - 1, y, st);
   fill(x + 1, y, st);
   fill(x, y - 1, st);
@@ -122,7 +113,7 @@ static void fill(int x, int y, dotz::ivec2 st) {
 }
 static void fill() {
   auto p = at(g_cursor);
-  if (p == g_brush_d) return;
+  if (p == g_brush) return;
 
   fill(g_cursor.x, g_cursor.y, p);
   update_data();
@@ -146,16 +137,6 @@ struct init {
 
     handle(KEY_DOWN, K_1, brush(0));
     handle(KEY_DOWN, K_2, brush(1));
-
-    handle(KEY_DOWN, K_Q, brush_d(-1, -1));
-    handle(KEY_DOWN, K_W, brush_d(+0, -1));
-    handle(KEY_DOWN, K_E, brush_d(+1, -1));
-    handle(KEY_DOWN, K_A, brush_d(-1, +0));
-    handle(KEY_DOWN, K_S, brush_d(+0, +0));
-    handle(KEY_DOWN, K_D, brush_d(+1, +0));
-    handle(KEY_DOWN, K_Z, brush_d(-1, +1));
-    handle(KEY_DOWN, K_X, brush_d(+0, +1));
-    handle(KEY_DOWN, K_C, brush_d(+1, +1));
 
     handle(KEY_DOWN, K_SPACE, stamp);
     handle(KEY_DOWN, K_L, fill);
