@@ -2,13 +2,25 @@
 #pragma leco add_resource "atlas.png"
 
 import casein;
+import dotz;
 import quack;
+
+static dotz::ivec2 g_cursor{};
 
 static void update_data(quack::instance *& i) {
   *i++ = {
-    .position = { 0, 0 },
-    .size = { 1, 1 },
+    .position = g_cursor - 0.1f,
+    .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
+  };
+}
+static void update_data() { quack::donald::data(::update_data); }
+
+static constexpr auto move(int dx, int dy) {
+  return [=] {
+    auto c = g_cursor + dotz::ivec2 { dx, dy };
+    g_cursor = dotz::clamp(c, { 0 }, { 31 });
+    update_data();
   };
 }
 
@@ -19,12 +31,17 @@ struct init {
 
     clear_colour({ 0.0f, 0.0f, 0.0f, 1.f });
     push_constants({
-        .grid_pos = { 0, 0 },
-        .grid_size = { 16, 16 },
+        .grid_pos = { 16, 16 },
+        .grid_size = { 32, 32 },
     });
     max_quads(1024);
 
     atlas("atlas.png");
-    data(::update_data);
+    update_data();
+
+    handle(KEY_DOWN, K_UP, move(0, -1));
+    handle(KEY_DOWN, K_DOWN, move(0, 1));
+    handle(KEY_DOWN, K_LEFT, move(-1, 0));
+    handle(KEY_DOWN, K_RIGHT, move(1, 0));
   }
 } i;
