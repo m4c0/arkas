@@ -5,8 +5,8 @@ import casein;
 import dotz;
 import quack;
 
-static constexpr const auto plane_w = 32;
-static constexpr const auto plane_h = 64;
+static constexpr const auto plane_w = 16;
+static constexpr const auto plane_h = 32;
 
 static dotz::ivec2 g_buffer[plane_h][plane_w] {};
 static dotz::ivec2 g_cursor {};
@@ -17,7 +17,7 @@ static void update_data(quack::instance *& i) {
   for (auto y = 0; y < plane_h; y++) {
     for (auto x = 0; x < plane_w; x++) {
       *i++ = {
-        .position = { x, y },
+        .position = dotz::vec2 { x, y } * 2.f,
         .size = { 1 },
         .uv0 = g_buffer[y][x] / 16.f,
         .uv1 = (g_buffer[y][x] + 1) / 16.f,
@@ -26,12 +26,12 @@ static void update_data(quack::instance *& i) {
     }
   }
   *i++ = {
-    .position = g_cursor - 0.1f,
+    .position = g_cursor * 2.f - 0.1f,
     .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
   };
   *i++ = {
-    .position = g_cursor,
+    .position = g_cursor * 2.f,
     .size = { 1 },
     .uv0 = g_brush_d / 16.f,
     .uv1 = (g_brush_d + 1) / 16.f,
@@ -44,8 +44,8 @@ static void update_data() {
   constexpr const auto hpw = plane_w / 2;
   auto y = dotz::clamp(g_cursor.y, hpw, plane_h - hpw);
   push_constants({
-      .grid_pos = { hpw, y },
-      .grid_size = { plane_w },
+      .grid_pos = dotz::vec2 { hpw, y } * 2.f + 0.5,
+      .grid_size = dotz::vec2 { plane_w } * 2.f + 1.f,
   });
   data(::update_data);
 }
