@@ -59,8 +59,10 @@ static constexpr auto move(int dx, int dy) {
 }
 static constexpr auto brush(unsigned n) {
   return [=] {
+    auto d = g_brush_d - g_brush;
     g_brush.x = 1 + 3 * n;
     g_brush.y = 2;
+    g_brush_d = g_brush + d;
     update_data();
   };
 }
