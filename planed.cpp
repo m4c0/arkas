@@ -14,6 +14,17 @@ static dotz::ivec2 g_brush { 1, 2 };
 static dotz::ivec2 g_brush_d = g_brush;
 
 static void update_data(quack::instance *& i) {
+  for (auto y = 0; y < plane_h; y++) {
+    for (auto x = 0; x < plane_w; x++) {
+      *i++ = {
+        .position = { x, y },
+        .size = { 1 },
+        .uv0 = g_buffer[y][x] / 16.f,
+        .uv1 = (g_buffer[y][x] + 1) / 16.f,
+        .multiplier = { 1 },
+      };
+    }
+  }
   *i++ = {
     .position = g_cursor - 0.1f,
     .size = { 1.2f },
@@ -60,13 +71,18 @@ static constexpr auto brush_d(int dx, int dy) {
   };
 }
 
+static void stamp() {
+  g_buffer[g_cursor.y][g_cursor.x] = g_brush_d;
+  update_data();
+}
+
 struct init {
   init() {
     using namespace casein;
     using namespace quack::donald;
 
     clear_colour({ 0.0f, 0.0f, 0.0f, 1.f });
-    max_quads(1024);
+    max_quads(10240);
 
     atlas("atlas.png");
     update_data();
@@ -88,5 +104,7 @@ struct init {
     handle(KEY_DOWN, K_Z, brush_d(-1, +1));
     handle(KEY_DOWN, K_X, brush_d(+0, +1));
     handle(KEY_DOWN, K_C, brush_d(+1, +1));
+
+    handle(KEY_DOWN, K_SPACE, stamp);
   }
 } i;
