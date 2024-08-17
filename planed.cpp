@@ -13,6 +13,8 @@ static dotz::ivec2 g_cursor {};
 static dotz::ivec2 g_brush { 1, 2 };
 static dotz::ivec2 g_brush_d = g_brush;
 
+static auto & at(dotz::ivec2 p) { return g_buffer[p.y][p.x]; }
+
 static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 brush) {
   *i++ = {
     .position = p,
@@ -24,16 +26,27 @@ static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 brush) {
 }
 
 static void update_data(quack::instance *& i) {
-  for (auto y = 0; y < plane_h; y++) {
-    for (auto x = 0; x < plane_w; x++) {
-      blit(i, dotz::vec2 { x, y } * 2.f, g_buffer[y][x]);
-    }
-  }
-  for (auto y = 0; y < plane_h; y++) {
-    for (auto x = 0; x < plane_w - 1; x++) {
-      auto l = g_buffer[y][x];
-      auto r = g_buffer[y][x + 1];
-      if (l == r) blit(i, dotz::vec2 { x * 2 + 1, y * 2 }, l);
+  for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
+    for (p.x = 0; p.x < plane_w; p.x++) {
+      blit(i, p * 2, at(p));
+
+      if (p.x < plane_w - 1) {
+        auto l = at(p);
+        auto r = at(p + dotz::ivec2 { 1, 0 });
+        if (l == r) blit(i, p * 2 + dotz::ivec2 { 1, 0 }, l);
+      }
+      if (p.y < plane_h - 1) {
+        auto t = at(p);
+        auto b = at(p + dotz::ivec2 { 0, 1 });
+        if (t == b) blit(i, p * 2 + dotz::ivec2 { 0, 1 }, t);
+      }
+      if (p.x < plane_w - 1 && p.y < plane_h - 1) {
+        auto l = at(p);
+        auto r = at(p + dotz::ivec2 { 1, 0 });
+        auto b = at(p + dotz::ivec2 { 0, 1 });
+        auto rb = at(p + 1);
+        if (l == r && l == b && l == rb) blit(i, p * 2 + 1, l);
+      }
     }
   }
   *i++ = {
@@ -79,7 +92,7 @@ static constexpr auto brush_d(int dx, int dy) {
 }
 
 static void stamp() {
-  g_buffer[g_cursor.y][g_cursor.x] = g_brush_d;
+  at(g_cursor) = g_brush_d;
   update_data();
 }
 
@@ -96,7 +109,7 @@ static void fill(int x, int y, dotz::ivec2 st) {
   fill(x, y + 1, st);
 }
 static void fill() {
-  auto p = g_buffer[g_cursor.y][g_cursor.x];
+  auto p = at(g_cursor);
   if (p == g_brush_d) return;
 
   fill(g_cursor.x, g_cursor.y, p);
