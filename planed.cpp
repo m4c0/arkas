@@ -11,6 +11,7 @@ static constexpr const auto plane_h = 64;
 static dotz::ivec2 g_buffer[plane_h][plane_w] {};
 static dotz::ivec2 g_cursor {};
 static dotz::ivec2 g_brush { 1, 2 };
+static dotz::ivec2 g_brush_d = g_brush;
 
 static void update_data(quack::instance *& i) {
   *i++ = {
@@ -21,8 +22,8 @@ static void update_data(quack::instance *& i) {
   *i++ = {
     .position = g_cursor,
     .size = { 1 },
-    .uv0 = (g_brush - 1) / 16.f,
-    .uv1 = (g_brush + 2) / 16.f,
+    .uv0 = g_brush_d / 16.f,
+    .uv1 = (g_brush_d + 1) / 16.f,
     .multiplier = { 1 },
   };
 }
@@ -52,6 +53,12 @@ static constexpr auto brush(unsigned n) {
     update_data();
   };
 }
+static constexpr auto brush_d(int dx, int dy) {
+  return [=] {
+    g_brush_d = g_brush + dotz::ivec2 { dx, dy };
+    update_data();
+  };
+}
 
 struct init {
   init() {
@@ -71,5 +78,15 @@ struct init {
 
     handle(KEY_DOWN, K_1, brush(0));
     handle(KEY_DOWN, K_2, brush(1));
+
+    handle(KEY_DOWN, K_Q, brush_d(-1, -1));
+    handle(KEY_DOWN, K_W, brush_d(+0, -1));
+    handle(KEY_DOWN, K_E, brush_d(+1, -1));
+    handle(KEY_DOWN, K_A, brush_d(-1, +0));
+    handle(KEY_DOWN, K_S, brush_d(+0, +0));
+    handle(KEY_DOWN, K_D, brush_d(+1, +0));
+    handle(KEY_DOWN, K_Z, brush_d(-1, +1));
+    handle(KEY_DOWN, K_X, brush_d(+0, +1));
+    handle(KEY_DOWN, K_C, brush_d(+1, +1));
   }
 } i;
