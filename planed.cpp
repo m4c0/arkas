@@ -29,8 +29,11 @@ static void update_data(quack::instance *& i) {
       blit(i, dotz::vec2 { x, y } * 2.f, g_buffer[y][x]);
     }
   }
-  for (auto y = 0; y < plane_h - 1; y++) {
+  for (auto y = 0; y < plane_h; y++) {
     for (auto x = 0; x < plane_w - 1; x++) {
+      auto l = g_buffer[y][x];
+      auto r = g_buffer[y][x + 1];
+      if (l == r) blit(i, dotz::vec2 { x * 2 + 1, y * 2 }, l);
     }
   }
   *i++ = {
