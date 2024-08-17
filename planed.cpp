@@ -53,6 +53,11 @@ static void update_data(quack::instance *& i) {
         if (tl == tr && tl == bl && tl == br) blit(i, pp, tl);
         else if (tl == tr && bl == br) blit(i, pp, tl + db);
         else if (tl == bl && tr == br) blit(i, pp, tl + dr);
+        else if (tl == br && tr == bl) (void)0;
+        else if (tl == tr && tl == bl) blit(i, pp, br - dr - db);
+        else if (tl == tr && tl == br) blit(i, pp, bl + dr - db);
+        else if (tl == bl && tl == br) blit(i, pp, tr - dr + db);
+        else blit(i, pp, tl + dr + db);
       }
     }
   }
