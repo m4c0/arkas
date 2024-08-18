@@ -5,7 +5,7 @@ import casein;
 import dotz;
 import quack;
 
-enum brush_type { bt_nil = 0, bt_water, bt_grass, bt_dirt };
+enum brush_type { bt_void = 0, bt_water, bt_grass, bt_dirt, bt_cloud };
 
 static constexpr const auto plane_w = 16;
 static constexpr const auto plane_h = 32;
@@ -19,6 +19,10 @@ static auto & at(dotz::ivec2 p) { return g_buffer[p.y][p.x]; }
 
 static constexpr dotz::ivec2 uv0(brush_type a, brush_type b) {
   switch (a) {
+    case bt_void:
+      if (b == bt_void) return { 1, 5 };
+      if (b == bt_cloud) return { 1, 5 };
+      break;
     case bt_water:
       if (b == bt_water) return { 1, 2 };
       if (b == bt_grass) return { 1, 2 };
@@ -31,6 +35,10 @@ static constexpr dotz::ivec2 uv0(brush_type a, brush_type b) {
     case bt_dirt:
       if (b == bt_dirt) return { 10, 2 };
       if (b == bt_grass) return { 10, 2 };
+      break;
+    case bt_cloud:
+      if (b == bt_cloud) return { 4, 5 };
+      if (b == bt_void) return { 4, 5 };
       break;
     default: break;
   }
@@ -79,15 +87,14 @@ static void update_data(quack::instance *& i) {
         auto bl = at(p + db);
         auto br = at(p + 1);
         auto pp = p * 2 + 1;
-        if (!tl || !tr || !bl || !br) blit(i, pp, 0);
-        else if (tl == tr && tl == bl && tl == br) blit(i, pp, uv0(tl));
+        if (tl == tr && tl == bl && tl == br) blit(i, pp, uv0(tl));
         else if (tl == tr && bl == br) blit(i, pp, uv0(tl, bl, db));
         else if (tl == bl && tr == br) blit(i, pp, uv0(tl, tr, dr));
         else if (tl == br && tr == bl) blit(i, pp, 0);
         else if (tl == tr && tl == bl) blit(i, pp, uv0(br, tl, -dr - db));
         else if (tl == tr && tl == br) blit(i, pp, uv0(bl, tl, dr - db));
         else if (tl == bl && tl == br) blit(i, pp, uv0(tr, tl, -dr + db));
-        else blit(i, pp, uv0(tl, br, dr + db));
+        else if (br == bl && br == tr) blit(i, pp, uv0(tl, br, dr + db));
       }
     }
   }
@@ -165,10 +172,11 @@ struct init {
     handle(KEY_DOWN, K_LEFT, move(-1, 0));
     handle(KEY_DOWN, K_RIGHT, move(1, 0));
 
-    handle(KEY_DOWN, K_0, brush(bt_nil));
+    handle(KEY_DOWN, K_0, brush(bt_void));
     handle(KEY_DOWN, K_1, brush(bt_water));
     handle(KEY_DOWN, K_2, brush(bt_grass));
     handle(KEY_DOWN, K_3, brush(bt_dirt));
+    handle(KEY_DOWN, K_9, brush(bt_cloud));
 
     handle(KEY_DOWN, K_SPACE, stamp);
     handle(KEY_DOWN, K_L, fill);
