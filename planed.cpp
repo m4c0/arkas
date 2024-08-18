@@ -20,6 +20,14 @@ static brush_type g_brush {};
 
 static dotz::ivec2 g_cursor {};
 
+static auto * plane_of(brush_type b) {
+  switch (b) {
+    case bt_void:
+    case bt_cloud: return &g_plane_t;
+    default: return &g_plane_b;
+  }
+}
+
 static constexpr dotz::ivec2 uv0(brush_type a, brush_type b) {
   switch (a) {
     case bt_void:
@@ -95,7 +103,7 @@ static void update_plane_data(quack::instance *& i, const plane & pl) {
         if (tl == tr && tl == bl && tl == br) blit(i, pp, uv0(tl));
         else if (tl == tr && bl == br) blit(i, pp, uv0(tl, bl, db));
         else if (tl == bl && tr == br) blit(i, pp, uv0(tl, tr, dr));
-        else if (tl == br && tr == bl) blit(i, pp, 0);
+        else if (tl == br && tr == bl) continue;
         else if (tl == tr && tl == bl) blit(i, pp, uv0(br, tl, -dr - db));
         else if (tl == tr && tl == br) blit(i, pp, uv0(bl, tl, dr - db));
         else if (tl == bl && tl == br) blit(i, pp, uv0(tr, tl, -dr + db));
@@ -106,7 +114,7 @@ static void update_plane_data(quack::instance *& i, const plane & pl) {
 }
 static void update_data(quack::instance *& i) {
   update_plane_data(i, g_plane_b);
-  update_plane_data(i, g_plane_t);
+  if (plane_of(g_brush) != &g_plane_b) update_plane_data(i, g_plane_t);
 
   *i++ = {
     .position = g_cursor * 2.f - 0.1f,
@@ -139,14 +147,6 @@ static constexpr auto brush(brush_type n) {
     g_brush = n;
     update_data();
   };
-}
-
-static auto * plane_of(brush_type b) {
-  switch (b) {
-    case bt_void:
-    case bt_cloud: return &g_plane_t;
-    default: return &g_plane_b;
-  }
 }
 
 static void stamp() {
