@@ -10,12 +10,15 @@ enum brush_type { bt_void = 0, bt_water, bt_grass, bt_dirt, bt_cloud };
 static constexpr const auto plane_w = 16;
 static constexpr const auto plane_h = 32;
 
-static brush_type g_buffer[plane_h][plane_w] {};
+struct plane {
+  brush_type ane[plane_h][plane_w] {};
+};
+
+static plane g_plane_t {};
+static plane g_plane_b {};
 static brush_type g_brush {};
 
 static dotz::ivec2 g_cursor {};
-
-static auto & at(dotz::ivec2 p) { return g_buffer[p.y][p.x]; }
 
 static constexpr dotz::ivec2 uv0(brush_type a, brush_type b) {
   switch (a) {
@@ -62,7 +65,9 @@ static void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 uv0) {
   };
 }
 
-static void update_data(quack::instance *& i) {
+static void update_plane_data(quack::instance *& i, const plane & pl) {
+  const auto at = [&](dotz::ivec2 p) { return pl.ane[p.y][p.x]; };
+
   for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
     for (p.x = 0; p.x < plane_w; p.x++) {
       blit(i, p * 2, uv0(at(p)));
@@ -98,6 +103,11 @@ static void update_data(quack::instance *& i) {
       }
     }
   }
+}
+static void update_data(quack::instance *& i) {
+  update_plane_data(i, g_plane_b);
+  update_plane_data(i, g_plane_t);
+
   *i++ = {
     .position = g_cursor * 2.f - 0.1f,
     .size = { 1.2f },
@@ -131,28 +141,37 @@ static constexpr auto brush(brush_type n) {
   };
 }
 
+static auto * plane_of(brush_type b) {
+  switch (b) {
+    case bt_void:
+    case bt_cloud: return &g_plane_t;
+    default: return &g_plane_b;
+  }
+}
+
 static void stamp() {
-  at(g_cursor) = g_brush;
+  plane_of(g_brush)->ane[g_cursor.y][g_cursor.x] = g_brush;
   update_data();
 }
 
-static void fill(int x, int y, dotz::ivec2 st) {
+static void fill(int x, int y, dotz::ivec2 st, plane * pl) {
   if (x < 0 || x >= plane_w || y < 0 || y >= plane_h) return;
 
-  auto & p = g_buffer[y][x];
+  auto & p = pl->ane[y][x];
   if (p != st) return;
 
   p = g_brush;
-  fill(x - 1, y, st);
-  fill(x + 1, y, st);
-  fill(x, y - 1, st);
-  fill(x, y + 1, st);
+  fill(x - 1, y, st, pl);
+  fill(x + 1, y, st, pl);
+  fill(x, y - 1, st, pl);
+  fill(x, y + 1, st, pl);
 }
 static void fill() {
-  auto p = at(g_cursor);
+  auto pl = plane_of(g_brush);
+  auto p = pl->ane[g_cursor.y][g_cursor.x];
   if (p == g_brush) return;
 
-  fill(g_cursor.x, g_cursor.y, p);
+  fill(g_cursor.x, g_cursor.y, p, pl);
   update_data();
 }
 
@@ -162,7 +181,7 @@ struct init {
     using namespace quack::donald;
 
     clear_colour({ 0.0f, 0.0f, 0.0f, 1.f });
-    max_quads(10240);
+    max_quads(102400);
 
     atlas("atlas.png");
     update_data();
