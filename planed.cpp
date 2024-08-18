@@ -12,13 +12,12 @@ static constexpr const auto plane_h = 32;
 
 struct plane {
   brush_type ane[plane_h][plane_w] {};
+  dotz::ivec2 cursor {};
 };
 
 static plane g_plane_t {};
 static plane g_plane_b {};
 static brush_type g_brush {};
-
-static dotz::ivec2 g_cursor {};
 
 static auto * plane_of(brush_type b) {
   switch (b) {
@@ -113,32 +112,33 @@ static void update_plane_data(quack::instance *& i, const plane & pl) {
   }
 }
 static void update_data(quack::instance *& i) {
-  update_plane_data(i, g_plane_b);
-  if (plane_of(g_brush) != &g_plane_b) update_plane_data(i, g_plane_t);
+  bool cursor_on_plane_b = plane_of(g_brush) == &g_plane_b;
 
+  update_plane_data(i, g_plane_b);
+  if (!cursor_on_plane_b) update_plane_data(i, g_plane_t);
+
+  auto cur = cursor_on_plane_b ? g_plane_b.cursor : g_plane_t.cursor;
   *i++ = {
-    .position = g_cursor * 2.f - 0.1f,
+    .position = cur * 2.f - 0.1f,
     .size = { 1.2f },
     .colour = { 1, 0, 0, 1 },
   };
-  blit(i, g_cursor * 2.f, uv0(g_brush));
-}
-static void update_data() {
-  using namespace quack::donald;
+  blit(i, cur * 2.f, uv0(g_brush));
 
   constexpr const auto hpw = plane_w / 2;
-  auto y = dotz::clamp(g_cursor.y, hpw, plane_h - hpw);
-  push_constants({
+  auto y = dotz::clamp(cur.y, hpw, plane_h - hpw);
+  quack::donald::push_constants({
       .grid_pos = dotz::vec2 { hpw, y } * 2.f + 0.5,
       .grid_size = dotz::vec2 { plane_w } * 2.f + 1.f,
   });
-  data(::update_data);
 }
+static void update_data() { quack::donald::data(::update_data); }
 
 static constexpr auto move(int dx, int dy) {
   return [=] {
-    auto c = g_cursor + dotz::ivec2 { dx, dy };
-    g_cursor = dotz::clamp(c, { 0 }, { plane_w - 1, plane_h - 1 });
+    auto * pl = plane_of(g_brush);
+    auto c = pl->cursor + dotz::ivec2 { dx, dy };
+    pl->cursor = dotz::clamp(c, { 0 }, { plane_w - 1, plane_h - 1 });
     update_data();
   };
 }
@@ -150,7 +150,8 @@ static constexpr auto brush(brush_type n) {
 }
 
 static void stamp() {
-  plane_of(g_brush)->ane[g_cursor.y][g_cursor.x] = g_brush;
+  auto * pl = plane_of(g_brush);
+  pl->ane[pl->cursor.y][pl->cursor.x] = g_brush;
   update_data();
 }
 
@@ -168,10 +169,10 @@ static void fill(int x, int y, dotz::ivec2 st, plane * pl) {
 }
 static void fill() {
   auto pl = plane_of(g_brush);
-  auto p = pl->ane[g_cursor.y][g_cursor.x];
+  auto p = pl->ane[pl->cursor.y][pl->cursor.x];
   if (p == g_brush) return;
 
-  fill(g_cursor.x, g_cursor.y, p, pl);
+  fill(pl->cursor.x, pl->cursor.y, p, pl);
   update_data();
 }
 
