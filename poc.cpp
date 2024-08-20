@@ -12,7 +12,7 @@ import voo;
 static dotz::vec2 player_pos {};
 static sitime::stopwatch timer {};
 
-static void update_data(quack::instance * i) {
+static void update_data(quack::instance *& i) {
   *i++ = {
     .position = player_pos,
     .size = { 1, 1 },
@@ -27,7 +27,7 @@ static void move_player(float dt) {
   player_pos = player_pos + d * dt * 10.0;
 }
 
-static void repaint(quack::instance * i) {
+static void repaint(quack::instance *& i) {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
@@ -35,46 +35,24 @@ static void repaint(quack::instance * i) {
   update_data(i);
 }
 
-class init : public voo::casein_thread {
-public:
-  void run() override {
+static quack::yakki::buffer * g_buffer;
+static quack::yakki::image * g_image;
+
+struct init {
+  init() {
     input::setup_defaults();
 
-    voo::device_and_queue dq { "arkas" };
-
-    quack::pipeline_stuff ps { dq, 100 };
-    quack::buffer_updater u { &dq, 1024, &repaint };
-    u.run_once();
-
-    sith::run_guard rg { &u }; // For animation
-
-    quack::image_updater a { &dq, &ps, [](auto pd) { return voo::load_sires_image("atlas.png", pd); } };
-    a.run_once();
-
-    while (!interrupted()) {
-      voo::swapchain_and_stuff sw { dq };
-
-      quack::upc rpc {
+    using namespace quack::yakki;
+    on_start = [](resources * r) {
+      g_buffer = r->buffer(1024, &repaint);
+      g_buffer->pc() = {
         .grid_pos = { 0, -6 },
         .grid_size = { 16, 16 },
       };
+      g_buffer->start();
 
-      extent_loop(dq.queue(), sw, [&] {
-        sw.queue_one_time_submit(dq.queue(), [&](auto pcb) {
-          auto scb = sw.cmd_render_pass({
-              .command_buffer = *pcb,
-              .clear_color = { { 0, 0, 0, 1 } },
-          });
-          ps.run({
-              .sw = &sw,
-              .scb = *scb,
-              .pc = &rpc,
-              .inst_buffer = u.data().local_buffer(),
-              .atlas_dset = a.dset(),
-              .count = 1,
-          });
-        });
-      });
-    }
+      g_image = r->image("atlas.png");
+    };
+    on_frame = [](renderer * r) { r->run(g_buffer, g_image); };
   }
 } i;
