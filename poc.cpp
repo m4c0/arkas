@@ -1,12 +1,10 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
 
-import casein;
 import dotz;
 import input;
 import quack;
 import sitime;
-import sith;
 import voo;
 
 static dotz::vec2 player_pos {};
