@@ -14,8 +14,6 @@ static sitime::stopwatch timer {};
 static plane::t pl {};
 
 static void update_data(quack::instance *& i) {
-  plane::render(&pl, i);
-
   *i++ = {
     .position = player_pos,
     .size = { 1, 1 },
@@ -46,7 +44,8 @@ static void init_plane() {
   }
 }
 
-static quack::yakki::buffer * g_buffer;
+static quack::yakki::buffer * g_plane_buffer;
+static quack::yakki::buffer * g_top_buffer;
 static quack::yakki::image * g_image;
 
 struct init {
@@ -57,15 +56,24 @@ struct init {
 
     using namespace quack::yakki;
     on_start = [](resources * r) {
-      g_buffer = r->buffer(plane::plane_tiles, &repaint);
-      g_buffer->pc() = {
+      g_plane_buffer = r->buffer(plane::plane_tiles, [](auto *& i) { plane::render(&pl, i); });
+      g_plane_buffer->pc() = {
+        .grid_pos = { plane::plane_w / 2, plane::plane_h / 2 },
+        .grid_size = { 16, 16 },
+      };
+
+      g_top_buffer = r->buffer(1, &repaint);
+      g_top_buffer->pc() = {
         .grid_pos = { 0, -6 },
         .grid_size = { 16, 16 },
       };
-      g_buffer->start();
+      g_top_buffer->start();
 
       g_image = r->image("atlas.png");
     };
-    on_frame = [](renderer * r) { r->run(g_buffer, g_image); };
+    on_frame = [](renderer * r) {
+      r->run(g_plane_buffer, g_image);
+      r->run(g_top_buffer, g_image);
+    };
   }
 } i;
