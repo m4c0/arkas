@@ -77,7 +77,9 @@ static void update_plane_data(quack::instance *& i, const plane & pl) {
 
   for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
     for (p.x = 0; p.x < plane_w; p.x++) {
-      blit(i, p * 2, uv0(at(p)));
+      const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d, uv0); };
+
+      blt(0, uv0(at(p)));
 
       constexpr const dotz::ivec2 dr { 1, 0 };
       constexpr const dotz::ivec2 db { 0, 1 };
@@ -85,28 +87,27 @@ static void update_plane_data(quack::instance *& i, const plane & pl) {
         auto l = at(p);
         auto r = at(p + dr);
         if (l == r) blit(i, p * 2 + dr, uv0(l, r));
-        else blit(i, p * 2 + dr, uv0(l, r, dr));
+        else blt(dr, uv0(l, r, dr));
       }
       if (p.y < plane_h - 1) {
         auto t = at(p);
         auto b = at(p + db);
         if (t == b) blit(i, p * 2 + db, uv0(t, b));
-        else blit(i, p * 2 + db, uv0(t, b, db));
+        else blt(db, uv0(t, b, db));
       }
       if (p.x < plane_w - 1 && p.y < plane_h - 1) {
         auto tl = at(p);
         auto tr = at(p + dr);
         auto bl = at(p + db);
         auto br = at(p + 1);
-        auto pp = p * 2 + 1;
-        if (tl == tr && tl == bl && tl == br) blit(i, pp, uv0(tl));
-        else if (tl == tr && bl == br) blit(i, pp, uv0(tl, bl, db));
-        else if (tl == bl && tr == br) blit(i, pp, uv0(tl, tr, dr));
+        if (tl == tr && tl == bl && tl == br) blt(1, uv0(tl));
+        else if (tl == tr && bl == br) blt(1, uv0(tl, bl, db));
+        else if (tl == bl && tr == br) blt(1, uv0(tl, tr, dr));
         else if (tl == br && tr == bl) continue;
-        else if (tl == tr && tl == bl) blit(i, pp, uv0(br, tl, -dr - db));
-        else if (tl == tr && tl == br) blit(i, pp, uv0(bl, tl, dr - db));
-        else if (tl == bl && tl == br) blit(i, pp, uv0(tr, tl, -dr + db));
-        else if (br == bl && br == tr) blit(i, pp, uv0(tl, br, dr + db));
+        else if (tl == tr && tl == bl) blt(1, uv0(br, tl, -dr - db));
+        else if (tl == tr && tl == br) blt(1, uv0(bl, tl, dr - db));
+        else if (tl == bl && tl == br) blt(1, uv0(tr, tl, -dr + db));
+        else if (br == bl && br == tr) blt(1, uv0(tl, br, dr + db));
       }
     }
   }
