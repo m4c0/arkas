@@ -62,9 +62,10 @@ namespace plane {
   };
 
   export void render(plane::t * pl, quack::instance *& i) {
+    constexpr const auto scr = dotz::vec2 { -plane_w, 0 };
     for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
       for (p.x = 0; p.x < plane_w; p.x++) {
-        const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d, uv0); };
+        const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d + scr, uv0); };
 
         blt(0, uv0(pl->at(p)));
 
@@ -73,13 +74,13 @@ namespace plane {
         if (p.x < plane_w - 1) {
           auto l = pl->at(p);
           auto r = pl->at(p + dr);
-          if (l == r) blit(i, p * 2 + dr, uv0(l, r));
+          if (l == r) blt(dr, uv0(l, r));
           else blt(dr, uv0(l, r, dr));
         }
         if (p.y < plane_h - 1) {
           auto t = pl->at(p);
           auto b = pl->at(p + db);
-          if (t == b) blit(i, p * 2 + db, uv0(t, b));
+          if (t == b) blt(db, uv0(t, b));
           else blt(db, uv0(t, b, db));
         }
         if (p.x < plane_w - 1 && p.y < plane_h - 1) {

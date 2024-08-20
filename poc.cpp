@@ -62,7 +62,7 @@ struct init {
     on_start = [](resources * r) {
       g_plane_buffer = r->buffer(plane::plane_tiles, [](auto *& i) { plane::render(&pl, i); });
       g_plane_buffer->pc() = {
-        .grid_pos = { plane::plane_w / 2, plane::plane_h / 2 },
+        .grid_pos = { 0, 0 },
         .grid_size = { 16, 16 },
       };
 
