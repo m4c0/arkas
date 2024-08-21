@@ -42,10 +42,18 @@ static void init_plane() {
       pl.at({ x, y }) = plane::at_water;
     }
   }
-  pl.at({ 1, 1 }) = plane::at_grass;
-  pl.at({ 2, 1 }) = plane::at_grass;
-  pl.at({ 3, 1 }) = plane::at_grass;
-  pl.at({ 2, 2 }) = plane::at_grass;
+
+  const auto r = plane::plane_w - 2;
+  const auto b = plane::plane_h - 2;
+
+  for (auto y = 1; y <= b; y++) {
+    pl.at({ 1, y }) = plane::at_grass;
+    pl.at({ r, y }) = plane::at_grass;
+  }
+  for (auto x = 1; x <= r; x++) {
+    pl.at({ x, 1 }) = plane::at_grass;
+    pl.at({ x, b }) = plane::at_grass;
+  }
 }
 
 static quack::yakki::buffer * g_plane_buffer;
