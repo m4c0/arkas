@@ -62,7 +62,7 @@ namespace plane {
   };
 
   export void render(plane::t * pl, quack::instance *& i) {
-    constexpr const auto scr = dotz::vec2 { -plane_w, 0 };
+    constexpr const auto scr = dotz::vec2 { -plane_w + 0.5f, -plane_h - 0.5f };
     for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
       for (p.x = 0; p.x < plane_w; p.x++) {
         const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d + scr, uv0); };
