@@ -68,9 +68,11 @@ struct init {
 
     using namespace quack::yakki;
     on_start = [](resources * r) {
+      auto hpw = plane::t::draw_w / 2.f;
+
       g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&pl, i); });
       g_plane_buffer->pc() = {
-        .grid_pos = { plane::t::draw_w / 2.f, 0.f },
+        .grid_pos = { hpw, plane::t::draw_h - hpw },
         .grid_size = { plane::t::draw_w },
       };
 
