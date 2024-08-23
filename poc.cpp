@@ -17,6 +17,7 @@ static constexpr const quack::upc game_area { {}, { 16 } };
 
 static dotz::vec2 player_pos { -0.5f, 6.0f };
 static sitime::stopwatch timer {};
+static float g_displ_y { plane::t::draw_h };
 
 static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
@@ -36,12 +37,22 @@ static void move_player(float dt) {
   player_pos = dotz::clamp(player_pos + d * dt * 10.0, { -8 }, { 7 });
 }
 
-static void parallax() {
+static void parallax(float dt) {
+  constexpr const auto hpw = plane::t::draw_w / 2.f;
+
+  g_displ_y = dotz::max(0, g_displ_y - dt);
+
   auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
-  g_gnd_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
+  g_gnd_plane_buffer->pc().grid_pos = {
+    plane_dx + plane::t::draw_w / 2.0f,
+    g_displ_y - hpw + 2.f,
+  };
 
   plane_dx = 8.0f * (player_pos.x + 0.5f) / 8.0f;
-  g_sky_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
+  g_sky_plane_buffer->pc().grid_pos = {
+    plane_dx + plane::t::draw_w / 2.0f,
+    g_displ_y - hpw + 8.f,
+  };
 }
 
 static void repaint(quack::instance *& i) {
@@ -49,7 +60,7 @@ static void repaint(quack::instance *& i) {
   timer = {};
 
   move_player(dt);
-  parallax();
+  parallax(dt);
   update_data(i);
 }
 
