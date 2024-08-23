@@ -8,6 +8,12 @@ import quack;
 import sitime;
 import voo;
 
+static quack::yakki::buffer * g_plane_buffer;
+static quack::yakki::buffer * g_top_buffer;
+static quack::yakki::image * g_image;
+
+static constexpr const quack::upc game_area { {}, { 16 } };
+
 static dotz::vec2 player_pos { -0.5f, 6.0f };
 static sitime::stopwatch timer {};
 
@@ -28,11 +34,17 @@ static void move_player(float dt) {
   player_pos = dotz::clamp(player_pos + d * dt * 10.0, { -8 }, { 7 });
 }
 
+static void parallax() {
+  auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
+  g_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
+}
+
 static void repaint(quack::instance *& i) {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
   move_player(dt);
+  parallax();
   update_data(i);
 }
 
@@ -55,12 +67,6 @@ static void init_plane() {
     pl.at({ x, b }) = plane::at_grass;
   }
 }
-
-static quack::yakki::buffer * g_plane_buffer;
-static quack::yakki::buffer * g_top_buffer;
-static quack::yakki::image * g_image;
-
-static constexpr const quack::upc game_area { {}, { 16 } };
 
 struct init {
   init() {
