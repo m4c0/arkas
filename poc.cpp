@@ -106,14 +106,14 @@ struct init {
 
       g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
       g_gnd_plane_buffer->pc() = {
-        .grid_pos = { hpw, plane::t::draw_h - hpw },
+        .grid_pos = { hpw, plane::t::draw_h - hpw + 2 },
         .grid_size = { plane::t::draw_w - 4 },
       };
       g_gnd_plane_buffer->scissor() = s;
 
       g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
       g_sky_plane_buffer->pc() = {
-        .grid_pos = { hpw, plane::t::draw_h - hpw },
+        .grid_pos = { hpw, plane::t::draw_h - hpw + 8 },
         .grid_size = { plane::t::draw_w - 16 },
       };
       g_sky_plane_buffer->scissor() = s;
