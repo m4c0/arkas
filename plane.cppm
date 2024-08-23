@@ -5,10 +5,6 @@ import quack;
 namespace plane {
   export enum area_type { at_void = 0, at_water, at_grass, at_dirt, at_cloud };
 
-  export constexpr const auto plane_w = 16;
-  export constexpr const auto plane_h = 32;
-  export constexpr const auto plane_tiles = (plane_w + 1) * (plane_h + 1) * 4;
-
   static constexpr dotz::ivec2 uv0(area_type a, area_type b) {
     switch (a) {
       case at_void:
@@ -55,35 +51,44 @@ namespace plane {
   }
 
   export class t {
-    area_type m_seeds[plane_h][plane_w] {};
+  public:
+    static constexpr const auto w = 16;
+    static constexpr const auto h = 32;
+
+    static constexpr const auto draw_w = w * 2 - 1;
+    static constexpr const auto draw_h = h * 2 - 1;
+
+    static constexpr const auto tiles = draw_w * draw_h;
+
+  private:
+    area_type m_seeds[h][w] {};
 
   public:
     constexpr auto & at(dotz::ivec2 p) { return m_seeds[p.y][p.x]; }
   };
 
   export void render(plane::t * pl, quack::instance *& i) {
-    constexpr const auto scr = dotz::vec2 { -plane_w + 0.5f, -plane_h - 0.5f };
-    for (dotz::ivec2 p {}; p.y < plane_h; p.y++) {
-      for (p.x = 0; p.x < plane_w; p.x++) {
-        const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d + scr, uv0); };
+    for (dotz::ivec2 p {}; p.y < t::h; p.y++) {
+      for (p.x = 0; p.x < t::w; p.x++) {
+        const auto blt = [&](dotz::ivec2 d, dotz::ivec2 uv0) { blit(i, p * 2 + d, uv0); };
 
         blt(0, uv0(pl->at(p)));
 
         constexpr const dotz::ivec2 dr { 1, 0 };
         constexpr const dotz::ivec2 db { 0, 1 };
-        if (p.x < plane_w - 1) {
+        if (p.x < t::w - 1) {
           auto l = pl->at(p);
           auto r = pl->at(p + dr);
           if (l == r) blt(dr, uv0(l, r));
           else blt(dr, uv0(l, r, dr));
         }
-        if (p.y < plane_h - 1) {
+        if (p.y < t::h - 1) {
           auto t = pl->at(p);
           auto b = pl->at(p + db);
           if (t == b) blt(db, uv0(t, b));
           else blt(db, uv0(t, b, db));
         }
-        if (p.x < plane_w - 1 && p.y < plane_h - 1) {
+        if (p.x < t::w - 1 && p.y < t::h - 1) {
           auto tl = pl->at(p);
           auto tr = pl->at(p + dr);
           auto bl = pl->at(p + db);

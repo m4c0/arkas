@@ -37,14 +37,14 @@ static void repaint(quack::instance *& i) {
 }
 
 static void init_plane() {
-  for (auto y = 0; y < plane::plane_h; y++) {
-    for (auto x = 0; x < plane::plane_w; x++) {
+  for (auto y = 0; y < plane::t::h; y++) {
+    for (auto x = 0; x < plane::t::w; x++) {
       pl.at({ x, y }) = plane::at_water;
     }
   }
 
-  const auto r = plane::plane_w - 2;
-  const auto b = plane::plane_h - 2;
+  const auto r = plane::t::w - 2;
+  const auto b = plane::t::h - 2;
 
   for (auto y = 1; y <= b; y++) {
     pl.at({ 1, y }) = plane::at_grass;
@@ -68,10 +68,10 @@ struct init {
 
     using namespace quack::yakki;
     on_start = [](resources * r) {
-      g_plane_buffer = r->buffer(plane::plane_tiles, [](auto *& i) { plane::render(&pl, i); });
+      g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&pl, i); });
       g_plane_buffer->pc() = {
-        .grid_pos = { 0, 0 },
-        .grid_size = { 16, 16 },
+        .grid_pos = { plane::t::draw_w / 2.f, 0.f },
+        .grid_size = { plane::t::draw_w },
       };
 
       g_top_buffer = r->buffer(1, &repaint);
