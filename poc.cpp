@@ -5,6 +5,7 @@ import dotz;
 import input;
 import plane;
 import quack;
+import rng;
 import sitime;
 import voo;
 
@@ -77,6 +78,8 @@ static void init_ground_plane() {
   for (auto y = 1; y <= b; y++) {
     g_gnd_plane.at({ 1, y }) = plane::at_grass;
     g_gnd_plane.at({ r, y }) = plane::at_grass;
+
+    g_gnd_plane.at({ static_cast<int>(rng::rand(r)), y }) = plane::at_grass;
   }
   for (auto x = 1; x <= r; x++) {
     g_gnd_plane.at({ x, 1 }) = plane::at_grass;
@@ -91,6 +94,8 @@ static void init_sky_plane() {
   for (auto y = 1; y <= b; y++) {
     g_sky_plane.at({ 1, y }) = plane::at_cloud;
     g_sky_plane.at({ r, y }) = plane::at_cloud;
+
+    g_sky_plane.at({ static_cast<int>(rng::rand(r)), y }) = plane::at_cloud;
   }
   for (auto x = 1; x <= r; x++) {
     g_sky_plane.at({ x, 1 }) = plane::at_cloud;
