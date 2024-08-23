@@ -3,7 +3,7 @@ import casein;
 import dotz;
 
 namespace input {
-  export enum buttons { B_UP = 0, B_DOWN, B_LEFT, B_RIGHT, B_COUNT };
+  export enum buttons { B_UP = 0, B_DOWN, B_LEFT, B_RIGHT, B_FIRE, B_COUNT };
   static bool button_state[B_COUNT] {};
 
   static float axis(buttons n, buttons p) {
@@ -21,11 +21,14 @@ namespace input {
   }
 
   export dotz::vec2 left_stick() { return dotz::vec2 { axis(B_LEFT, B_RIGHT), axis(B_UP, B_DOWN) }; }
+  export bool fire() { return button_state[B_FIRE]; }
 
   export void setup_defaults() {
     handle(casein::K_W, B_UP);
     handle(casein::K_S, B_DOWN);
     handle(casein::K_A, B_LEFT);
     handle(casein::K_D, B_RIGHT);
+
+    handle(casein::K_SPACE, B_FIRE);
   }
 } // namespace input

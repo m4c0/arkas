@@ -2,6 +2,7 @@
 #pragma leco add_resource "atlas.png"
 
 import dotz;
+import hai;
 import input;
 import plane;
 import quack;
@@ -16,6 +17,13 @@ static quack::yakki::image * g_image;
 
 static constexpr const quack::upc game_area { {}, { 16 } };
 
+struct bullet {
+  dotz::vec2 pos {};
+  bool active {};
+};
+static hai::array<bullet> g_bullets { 16 };
+static float g_gun_cooldown = 1e20;
+
 static dotz::vec2 player_pos { -0.5f, 2.5f };
 static sitime::stopwatch timer {};
 static float g_displ_y = plane::t::draw_h - 2;
@@ -24,6 +32,16 @@ static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
 
 static void update_data(quack::instance *& i) {
+  for (auto & b : g_bullets) {
+    if (!b.active) continue;
+
+    *i++ = {
+      .position = b.pos,
+      .size = { 1 },
+      .colour = { 1, 0, 0, 1 },
+    };
+  }
+
   *i++ = {
     .position = player_pos,
     .size = { 1, 1 },
@@ -36,6 +54,29 @@ static void move_player(float dt) {
   if (dotz::length(d) < 0.001) return;
 
   player_pos = dotz::clamp(player_pos + d * dt * 10.0, { -8 }, { 7 });
+}
+
+static void shoot(float dt) {
+  g_gun_cooldown += dt;
+  if (!input::fire()) return;
+  if (g_gun_cooldown < 0.3) return;
+
+  for (auto & b : g_bullets) {
+    if (b.active) continue;
+
+    g_gun_cooldown = 0;
+    b = { .pos = player_pos, .active = true };
+    break;
+  }
+}
+
+static void move_bullets(float dt) {
+  for (auto & b : g_bullets) {
+    if (!b.active) continue;
+
+    b.pos.y -= dt;
+    if (b.pos.y < -game_area.grid_pos.y) b.active = false;
+  }
 }
 
 static void parallax(float dt) {
@@ -63,6 +104,8 @@ static void repaint(quack::instance *& i) {
   timer = {};
 
   move_player(dt);
+  shoot(dt);
+  move_bullets(dt);
   parallax(dt);
   update_data(i);
 }
@@ -136,7 +179,7 @@ struct init {
       };
       g_sky_plane_buffer->scissor() = s;
 
-      g_top_buffer = r->buffer(1, &repaint);
+      g_top_buffer = r->buffer(16, &repaint);
       g_top_buffer->pc() = game_area;
       g_top_buffer->start();
 
