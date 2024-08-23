@@ -60,6 +60,8 @@ static quack::yakki::buffer * g_plane_buffer;
 static quack::yakki::buffer * g_top_buffer;
 static quack::yakki::image * g_image;
 
+static constexpr const quack::upc game_area { {}, { 16 } };
+
 struct init {
   init() {
     init_plane();
@@ -73,14 +75,16 @@ struct init {
       g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&pl, i); });
       g_plane_buffer->pc() = {
         .grid_pos = { hpw, plane::t::draw_h - hpw },
-        .grid_size = { plane::t::draw_w },
+        .grid_size = { plane::t::draw_w - 4 },
+      };
+      g_plane_buffer->scissor() = {
+        .offset = -game_area.grid_size / 2,
+        .extent = game_area.grid_size,
+        .ref = &game_area,
       };
 
       g_top_buffer = r->buffer(1, &repaint);
-      g_top_buffer->pc() = {
-        .grid_pos = { 0, 0 },
-        .grid_size = { 16, 16 },
-      };
+      g_top_buffer->pc() = game_area;
       g_top_buffer->start();
 
       g_image = r->image("atlas.png");
