@@ -17,7 +17,7 @@ static constexpr const quack::upc game_area { {}, { 16 } };
 static dotz::vec2 player_pos { -0.5f, 6.0f };
 static sitime::stopwatch timer {};
 
-static plane::t pl {};
+static plane::t g_gnd_plane {};
 
 static void update_data(quack::instance *& i) {
   *i++ = {
@@ -48,10 +48,10 @@ static void repaint(quack::instance *& i) {
   update_data(i);
 }
 
-static void init_plane() {
+static void init_ground_plane() {
   for (auto y = 0; y < plane::t::h; y++) {
     for (auto x = 0; x < plane::t::w; x++) {
-      pl.at({ x, y }) = plane::at_water;
+      g_gnd_plane.at({ x, y }) = plane::at_water;
     }
   }
 
@@ -59,18 +59,18 @@ static void init_plane() {
   const auto b = plane::t::h - 2;
 
   for (auto y = 1; y <= b; y++) {
-    pl.at({ 1, y }) = plane::at_grass;
-    pl.at({ r, y }) = plane::at_grass;
+    g_gnd_plane.at({ 1, y }) = plane::at_grass;
+    g_gnd_plane.at({ r, y }) = plane::at_grass;
   }
   for (auto x = 1; x <= r; x++) {
-    pl.at({ x, 1 }) = plane::at_grass;
-    pl.at({ x, b }) = plane::at_grass;
+    g_gnd_plane.at({ x, 1 }) = plane::at_grass;
+    g_gnd_plane.at({ x, b }) = plane::at_grass;
   }
 }
 
 struct init {
   init() {
-    init_plane();
+    init_ground_plane();
 
     input::setup_defaults();
 
@@ -78,7 +78,7 @@ struct init {
     on_start = [](resources * r) {
       auto hpw = plane::t::draw_w / 2.f;
 
-      g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&pl, i); });
+      g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
       g_plane_buffer->pc() = {
         .grid_pos = { hpw, plane::t::draw_h - hpw },
         .grid_size = { plane::t::draw_w - 4 },
