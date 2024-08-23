@@ -16,9 +16,9 @@ static quack::yakki::image * g_image;
 
 static constexpr const quack::upc game_area { {}, { 16 } };
 
-static dotz::vec2 player_pos { -0.5f, 6.0f };
+static dotz::vec2 player_pos { -0.5f, 2.5f };
 static sitime::stopwatch timer {};
-static float g_displ_y { plane::t::draw_h };
+static float g_displ_y = plane::t::draw_h - 2;
 
 static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
@@ -44,15 +44,17 @@ static void parallax(float dt) {
   g_displ_y = dotz::max(0, g_displ_y - dt);
 
   auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
+  auto plane_dy = 2.0f * (player_pos.y + 0.5f) / 8.0f;
+
   g_gnd_plane_buffer->pc().grid_pos = {
     plane_dx + plane::t::draw_w / 2.0f,
-    g_displ_y - hpw + 2.f,
+    plane_dy + g_displ_y - hpw + 2.f,
   };
 
   plane_dx = 8.0f * (player_pos.x + 0.5f) / 8.0f;
   g_sky_plane_buffer->pc().grid_pos = {
     plane_dx + plane::t::draw_w / 2.0f,
-    g_displ_y - hpw + 8.f,
+    plane_dy + g_displ_y - hpw + 8.f,
   };
 }
 
@@ -122,14 +124,14 @@ struct init {
 
       g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
       g_gnd_plane_buffer->pc() = {
-        .grid_pos = { hpw, plane::t::draw_h - hpw + 2 },
+        .grid_pos = { hpw, g_displ_y - hpw + 2 },
         .grid_size = { plane::t::draw_w - 4 },
       };
       g_gnd_plane_buffer->scissor() = s;
 
       g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
       g_sky_plane_buffer->pc() = {
-        .grid_pos = { hpw, plane::t::draw_h - hpw + 8 },
+        .grid_pos = { hpw, g_displ_y - hpw + 8 },
         .grid_size = { plane::t::draw_w - 16 },
       };
       g_sky_plane_buffer->scissor() = s;
