@@ -21,7 +21,8 @@ struct bullet {
   dotz::vec2 pos {};
   bool active {};
 };
-static hai::array<bullet> g_bullets { 16 };
+static constexpr const auto max_bullets = 16;
+static hai::array<bullet> g_bullets { max_bullets };
 static float g_gun_cooldown = 1e20;
 
 static dotz::vec2 player_pos { -0.5f, 2.5f };
@@ -75,7 +76,7 @@ static void move_bullets(float dt) {
     if (!b.active) continue;
 
     b.pos.y -= dt;
-    if (b.pos.y < -game_area.grid_pos.y) b.active = false;
+    if (b.pos.y < -1 - game_area.grid_size.y / 2) b.active = false;
   }
 }
 
@@ -179,7 +180,7 @@ struct init {
       };
       g_sky_plane_buffer->scissor() = s;
 
-      g_top_buffer = r->buffer(16, &repaint);
+      g_top_buffer = r->buffer(max_bullets + 1, &repaint);
       g_top_buffer->pc() = game_area;
       g_top_buffer->start();
 
