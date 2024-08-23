@@ -39,6 +39,9 @@ static void move_player(float dt) {
 static void parallax() {
   auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
   g_gnd_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
+
+  plane_dx = 8.0f * (player_pos.x + 0.5f) / 8.0f;
+  g_sky_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
 }
 
 static void repaint(quack::instance *& i) {
@@ -95,27 +98,25 @@ struct init {
     on_start = [](resources * r) {
       auto hpw = plane::t::draw_w / 2.f;
 
-      g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
-      g_gnd_plane_buffer->pc() = {
-        .grid_pos = { hpw, plane::t::draw_h - hpw },
-        .grid_size = { plane::t::draw_w - 4 },
-      };
-      g_gnd_plane_buffer->scissor() = {
+      quack::scissor s {
         .offset = -game_area.grid_size / 2,
         .extent = game_area.grid_size,
         .ref = &game_area,
       };
 
-      g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
-      g_sky_plane_buffer->pc() = {
+      g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
+      g_gnd_plane_buffer->pc() = {
         .grid_pos = { hpw, plane::t::draw_h - hpw },
         .grid_size = { plane::t::draw_w - 4 },
       };
-      g_sky_plane_buffer->scissor() = {
-        .offset = -game_area.grid_size / 2,
-        .extent = game_area.grid_size,
-        .ref = &game_area,
+      g_gnd_plane_buffer->scissor() = s;
+
+      g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
+      g_sky_plane_buffer->pc() = {
+        .grid_pos = { hpw, plane::t::draw_h - hpw },
+        .grid_size = { plane::t::draw_w - 16 },
       };
+      g_sky_plane_buffer->scissor() = s;
 
       g_top_buffer = r->buffer(1, &repaint);
       g_top_buffer->pc() = game_area;
