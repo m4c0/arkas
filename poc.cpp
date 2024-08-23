@@ -8,7 +8,7 @@ import quack;
 import sitime;
 import voo;
 
-static dotz::vec2 player_pos {};
+static dotz::vec2 player_pos { -0.5f, 6.0f };
 static sitime::stopwatch timer {};
 
 static plane::t pl {};
