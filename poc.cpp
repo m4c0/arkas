@@ -8,7 +8,8 @@ import quack;
 import sitime;
 import voo;
 
-static quack::yakki::buffer * g_plane_buffer;
+static quack::yakki::buffer * g_gnd_plane_buffer;
+static quack::yakki::buffer * g_sky_plane_buffer;
 static quack::yakki::buffer * g_top_buffer;
 static quack::yakki::image * g_image;
 
@@ -18,6 +19,7 @@ static dotz::vec2 player_pos { -0.5f, 6.0f };
 static sitime::stopwatch timer {};
 
 static plane::t g_gnd_plane {};
+static plane::t g_sky_plane {};
 
 static void update_data(quack::instance *& i) {
   *i++ = {
@@ -36,7 +38,7 @@ static void move_player(float dt) {
 
 static void parallax() {
   auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
-  g_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
+  g_gnd_plane_buffer->pc().grid_pos.x = plane_dx + plane::t::draw_w / 2.0f;
 }
 
 static void repaint(quack::instance *& i) {
@@ -68,9 +70,24 @@ static void init_ground_plane() {
   }
 }
 
+static void init_sky_plane() {
+  const auto r = plane::t::w - 2;
+  const auto b = plane::t::h - 2;
+
+  for (auto y = 1; y <= b; y++) {
+    g_sky_plane.at({ 1, y }) = plane::at_cloud;
+    g_sky_plane.at({ r, y }) = plane::at_cloud;
+  }
+  for (auto x = 1; x <= r; x++) {
+    g_sky_plane.at({ x, 1 }) = plane::at_cloud;
+    g_sky_plane.at({ x, b }) = plane::at_cloud;
+  }
+}
+
 struct init {
   init() {
     init_ground_plane();
+    init_sky_plane();
 
     input::setup_defaults();
 
@@ -78,12 +95,23 @@ struct init {
     on_start = [](resources * r) {
       auto hpw = plane::t::draw_w / 2.f;
 
-      g_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
-      g_plane_buffer->pc() = {
+      g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
+      g_gnd_plane_buffer->pc() = {
         .grid_pos = { hpw, plane::t::draw_h - hpw },
         .grid_size = { plane::t::draw_w - 4 },
       };
-      g_plane_buffer->scissor() = {
+      g_gnd_plane_buffer->scissor() = {
+        .offset = -game_area.grid_size / 2,
+        .extent = game_area.grid_size,
+        .ref = &game_area,
+      };
+
+      g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
+      g_sky_plane_buffer->pc() = {
+        .grid_pos = { hpw, plane::t::draw_h - hpw },
+        .grid_size = { plane::t::draw_w - 4 },
+      };
+      g_sky_plane_buffer->scissor() = {
         .offset = -game_area.grid_size / 2,
         .extent = game_area.grid_size,
         .ref = &game_area,
@@ -96,7 +124,8 @@ struct init {
       g_image = r->image("atlas.png");
     };
     on_frame = [](renderer * r) {
-      r->run(g_plane_buffer, g_image);
+      r->run(g_gnd_plane_buffer, g_image);
+      r->run(g_sky_plane_buffer, g_image);
       r->run(g_top_buffer, g_image);
     };
   }
