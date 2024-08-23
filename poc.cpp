@@ -25,7 +25,7 @@ static void move_player(float dt) {
   auto d = input::left_stick();
   if (dotz::length(d) < 0.001) return;
 
-  player_pos = player_pos + d * dt * 10.0;
+  player_pos = dotz::clamp(player_pos + d * dt * 10.0, { -8 }, { 7 });
 }
 
 static void repaint(quack::instance *& i) {
@@ -78,7 +78,7 @@ struct init {
 
       g_top_buffer = r->buffer(1, &repaint);
       g_top_buffer->pc() = {
-        .grid_pos = { 0, -6 },
+        .grid_pos = { 0, 0 },
         .grid_size = { 16, 16 },
       };
       g_top_buffer->start();
