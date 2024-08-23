@@ -75,7 +75,7 @@ static void move_bullets(float dt) {
   for (auto & b : g_bullets) {
     if (!b.active) continue;
 
-    b.pos.y -= dt;
+    b.pos.y -= dt * 20.f;
     if (b.pos.y < -1 - game_area.grid_size.y / 2) b.active = false;
   }
 }
