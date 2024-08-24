@@ -37,7 +37,9 @@ static hai::array<enemy> g_enemies { max_enemies };
 
 static dotz::vec2 player_pos { -0.5f, 3.5f };
 static sitime::stopwatch timer {};
-static float g_displ_y = plane::t::draw_h - 2;
+
+static constexpr const float initial_displ_y = plane::t::draw_h - 2;
+static float g_displ_y = initial_displ_y;
 
 static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
@@ -122,6 +124,19 @@ static void parallax(float dt) {
   };
 }
 
+static void move_enemies(float dt) {
+  for (auto & e : g_enemies) {
+    if (e.spawn_disp_y == 0) continue;
+
+    if (e.is_active) {
+      e.pos = e.pos + e.speed * dt;
+      e.speed = e.speed + e.accel * dt;
+    } else if (initial_displ_y - e.spawn_disp_y > g_displ_y) {
+      e.is_active = true;
+    }
+  }
+}
+
 static void repaint(quack::instance *& i) {
   float dt = timer.millis() / 1000.f;
   timer = {};
@@ -129,6 +144,7 @@ static void repaint(quack::instance *& i) {
   move_player(dt);
   shoot(dt);
   move_bullets(dt);
+  move_enemies(dt);
   parallax(dt);
   update_data(i);
 }
@@ -172,8 +188,24 @@ static void init_sky_plane() {
 }
 
 static void init_enemies() {
-  g_enemies[0] = { .spawn_disp_y = g_displ_y - 2, .pos = {} };
-  g_enemies[1] = { .spawn_disp_y = g_displ_y - 3, .pos = {} };
+  constexpr const auto sy = game_area.grid_size.y;
+
+  auto * e = g_enemies.begin();
+
+  *e++ = { .spawn_disp_y = 2, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 2.5f, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 3, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 3.5f, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
+
+  *e++ = { .spawn_disp_y = 5.0f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 5.5f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 6.0f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 6.5f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+
+  *e++ = { .spawn_disp_y = 8.0f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 8.5f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 9.0f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 9.5f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
 }
 
 struct init {
@@ -196,14 +228,14 @@ struct init {
 
       g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
       g_gnd_plane_buffer->pc() = {
-        .grid_pos = { hpw, g_displ_y - hpw + 2 },
+        .grid_pos = { hpw, initial_displ_y - hpw + 2 },
         .grid_size = { plane::t::draw_w - 4 },
       };
       g_gnd_plane_buffer->scissor() = s;
 
       g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
       g_sky_plane_buffer->pc() = {
-        .grid_pos = { hpw, g_displ_y - hpw + 8 },
+        .grid_pos = { hpw, initial_displ_y - hpw + 8 },
         .grid_size = { plane::t::draw_w - 16 },
       };
       g_sky_plane_buffer->scissor() = s;
