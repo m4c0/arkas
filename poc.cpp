@@ -25,7 +25,17 @@ static constexpr const auto max_bullets = 16;
 static hai::array<bullet> g_bullets { max_bullets };
 static float g_gun_cooldown = 1e20;
 
-static dotz::vec2 player_pos { -0.5f, 2.5f };
+struct enemy {
+  float spawn_disp_y {};
+  dotz::vec2 pos {};
+  dotz::vec2 speed {};
+  dotz::vec2 accel {};
+  bool is_active {};
+};
+static constexpr const auto max_enemies = 1024;
+static hai::array<enemy> g_enemies { max_enemies };
+
+static dotz::vec2 player_pos { -0.5f, 3.5f };
 static sitime::stopwatch timer {};
 static float g_displ_y = plane::t::draw_h - 2;
 
@@ -33,6 +43,16 @@ static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
 
 static void update_data(quack::instance *& i) {
+  for (auto & e : g_enemies) {
+    if (!e.is_active) continue;
+
+    *i++ = {
+      .position = e.pos,
+      .size = { 1 },
+      .colour = { 0, 1, 0, 1 },
+    };
+  }
+
   for (auto & b : g_bullets) {
     if (!b.active) continue;
 
@@ -83,6 +103,8 @@ static void move_bullets(float dt) {
 static void parallax(float dt) {
   constexpr const auto hpw = plane::t::draw_w / 2.f;
 
+  // TODO: fix upper bound
+  // TODO: trigger "end level" when upper bound is reached
   g_displ_y = dotz::max(0, g_displ_y - dt);
 
   auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
@@ -149,10 +171,16 @@ static void init_sky_plane() {
   }
 }
 
+static void init_enemies() {
+  g_enemies[0] = { .spawn_disp_y = g_displ_y - 2, .pos = {} };
+  g_enemies[1] = { .spawn_disp_y = g_displ_y - 3, .pos = {} };
+}
+
 struct init {
   init() {
     init_ground_plane();
     init_sky_plane();
+    init_enemies();
 
     input::setup_defaults();
 
@@ -180,7 +208,7 @@ struct init {
       };
       g_sky_plane_buffer->scissor() = s;
 
-      g_top_buffer = r->buffer(max_bullets + 1, &repaint);
+      g_top_buffer = r->buffer(max_bullets + max_enemies + 1, &repaint);
       g_top_buffer->pc() = game_area;
       g_top_buffer->start();
 
