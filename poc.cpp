@@ -30,7 +30,7 @@ struct enemy {
   dotz::vec2 pos {};
   dotz::vec2 speed {};
   dotz::vec2 accel {};
-  bool is_active {};
+  bool active {};
 };
 static constexpr const auto max_enemies = 1024;
 static hai::array<enemy> g_enemies { max_enemies };
@@ -46,7 +46,7 @@ static plane::t g_sky_plane {};
 
 static void update_data(quack::instance *& i) {
   for (auto & e : g_enemies) {
-    if (!e.is_active) continue;
+    if (!e.active) continue;
 
     *i++ = {
       .position = e.pos,
@@ -128,11 +128,11 @@ static void move_enemies(float dt) {
   for (auto & e : g_enemies) {
     if (e.spawn_disp_y == 0) continue;
 
-    if (e.is_active) {
+    if (e.active) {
       e.pos = e.pos + e.speed * dt;
       e.speed = e.speed + e.accel * dt;
     } else if (initial_displ_y - e.spawn_disp_y > g_displ_y) {
-      e.is_active = true;
+      e.active = true;
     }
   }
 }
