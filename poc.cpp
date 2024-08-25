@@ -137,6 +137,29 @@ static void move_enemies(float dt) {
   }
 }
 
+static void check_bullet_enemy_collisions() {
+  for (auto & b : g_bullets) {
+    if (!b.active) continue;
+
+    auto bs = b.pos;
+    auto be = bs + 1;
+
+    for (auto & e : g_enemies) {
+      if (!e.active) continue;
+
+      auto es = e.pos;
+      auto ee = es + 1;
+
+      if (ee.x < bs.x || es.x > be.x) continue;
+      if (ee.y < bs.y || es.y > be.y) continue;
+
+      e = {};
+      b = {};
+      break;
+    }
+  }
+}
+
 static void repaint(quack::instance *& i) {
   float dt = timer.millis() / 1000.f;
   timer = {};
@@ -145,6 +168,7 @@ static void repaint(quack::instance *& i) {
   shoot(dt);
   move_bullets(dt);
   move_enemies(dt);
+  check_bullet_enemy_collisions();
   parallax(dt);
   update_data(i);
 }
