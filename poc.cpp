@@ -1,6 +1,5 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
-#pragma leco add_resource "ships.png"
 
 import dotz;
 import hai;
@@ -8,15 +7,13 @@ import input;
 import plane;
 import quack;
 import rng;
+import ships;
 import sitime;
 import voo;
 
 static quack::yakki::buffer * g_gnd_plane_buffer;
 static quack::yakki::buffer * g_sky_plane_buffer;
 static quack::yakki::image * g_plane_image;
-
-static quack::yakki::buffer * g_ship_buffer;
-static quack::yakki::image * g_ship_image;
 
 static constexpr const quack::upc game_area { {}, { 16 } };
 
@@ -47,40 +44,20 @@ static float g_displ_y = initial_displ_y;
 static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
 
-static constexpr auto uv(int x, int y) { return dotz::vec2 { x, y } / 16.f; }
-
-static void update_data(quack::instance *& i) {
+static void update_data() {
   for (auto & e : g_enemies) {
     if (!e.active) continue;
 
-    *i++ = {
-      .position = e.pos,
-      .size = { 1 },
-      .uv0 = uv(0, 2),
-      .uv1 = uv(0, 2) + 1.f / 16.f,
-      .multiplier = { 1 },
-    };
+    ships::blit(e.pos, { 0, 2 });
   }
 
   for (auto & b : g_bullets) {
     if (!b.active) continue;
 
-    *i++ = {
-      .position = b.pos,
-      .size = { 1 },
-      .uv0 = uv(1, 0),
-      .uv1 = uv(1, 0) + 1.f / 16.f,
-      .multiplier = { 1 },
-    };
+    ships::blit(b.pos, { 1, 0 });
   }
 
-  *i++ = {
-    .position = player_pos,
-    .size = { 1, 1 },
-    .uv0 = uv(0, 1),
-    .uv1 = uv(0, 1) + 1.f / 16.f,
-    .multiplier = { 1 },
-  };
+  ships::blit(player_pos, { 0, 1 });
 }
 
 static void move_player(float dt) {
@@ -171,7 +148,7 @@ static void check_bullet_enemy_collisions() {
   }
 }
 
-static void repaint(quack::instance *& i) {
+static void repaint() {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
@@ -181,7 +158,7 @@ static void repaint(quack::instance *& i) {
   move_enemies(dt);
   check_bullet_enemy_collisions();
   parallax(dt);
-  update_data(i);
+  update_data();
 }
 
 static void init_ground_plane() {
@@ -275,17 +252,15 @@ struct init {
       };
       g_sky_plane_buffer->scissor() = s;
 
-      g_ship_buffer = r->buffer(max_bullets + max_enemies + 1, &repaint);
-      g_ship_buffer->pc() = game_area;
-      g_ship_buffer->start();
+      ships::on_update = repaint;
+      ships::setup(r, max_bullets + max_enemies + 1);
 
       g_plane_image = r->image("atlas.png");
-      g_ship_image = r->image("ships.png");
     };
     on_frame = [](renderer * r) {
       r->run(g_gnd_plane_buffer, g_plane_image);
       r->run(g_sky_plane_buffer, g_plane_image);
-      r->run(g_ship_buffer, g_ship_image);
+      ships::run(r);
     };
     start();
   }
