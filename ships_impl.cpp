@@ -22,7 +22,9 @@ void ships::setup(quack::yakki::resources * r, unsigned quad_count) {
 
   g_image = r->image("ships.png");
 }
+
 void ships::run(quack::yakki::renderer * r) { r->run(g_buffer, g_image); }
+
 void ships::blit(dotz::vec2 pos, dotz::ivec2 uv) {
   *g_i++ = {
     .position = pos,
@@ -32,3 +34,5 @@ void ships::blit(dotz::vec2 pos, dotz::ivec2 uv) {
     .multiplier = { 1 },
   };
 }
+
+dotz::vec2 ships::mouse_pos() { return g_buffer->mouse_pos(); }

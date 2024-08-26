@@ -9,6 +9,7 @@ export namespace ships {
   void blit(dotz::vec2 pos, dotz::ivec2 uv);
   void setup(quack::yakki::resources * r, unsigned quad_count);
   void run(quack::yakki::renderer * r);
+  dotz::vec2 mouse_pos();
 
   extern hai::fn<void> on_update;
 } // namespace ships
