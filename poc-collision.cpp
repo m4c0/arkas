@@ -7,8 +7,13 @@ import ships;
 
 static constexpr const dotz::vec2 enemy_pos { -2, -4 };
 static dotz::vec2 g_player_pos { 2, 4 };
+static bool g_blink {};
+
+static bool collided() { return true; }
 
 static void setup_buffer() {
+  if (g_blink && collided()) return;
+
   ships::blit(enemy_pos, { 0, 2 });
   ships::blit(g_player_pos, { 0, 1 });
 }
@@ -21,6 +26,7 @@ struct init {
     using namespace quack::yakki;
 
     handle(MOUSE_MOVE, mouse_move);
+    handle(TIMER, [] { g_blink = !g_blink; });
 
     on_start = [](auto * r) {
       ships::on_update = setup_buffer;
