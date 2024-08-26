@@ -1,6 +1,7 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
 
+import collision;
 import dotz;
 import hai;
 import input;
@@ -129,17 +130,10 @@ static void check_bullet_enemy_collisions() {
   for (auto & b : g_bullets) {
     if (!b.active) continue;
 
-    auto bs = b.pos;
-    auto be = bs + 1;
-
     for (auto & e : g_enemies) {
       if (!e.active) continue;
 
-      auto es = e.pos;
-      auto ee = es + 1;
-
-      if (ee.x < bs.x || es.x > be.x) continue;
-      if (ee.y < bs.y || es.y > be.y) continue;
+      if (!collision::between(e.pos, { 0, 2 }, b.pos, { 1, 0 })) continue;
 
       e = {};
       b = {};
@@ -152,11 +146,11 @@ static void repaint() {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
+  check_bullet_enemy_collisions();
   move_player(dt);
   shoot(dt);
   move_bullets(dt);
   move_enemies(dt);
-  check_bullet_enemy_collisions();
   parallax(dt);
   update_data();
 }
@@ -227,6 +221,7 @@ struct init {
     init_enemies();
 
     input::setup_defaults();
+    collision::setup();
 
     using namespace quack::yakki;
     on_start = [](resources * r) {
