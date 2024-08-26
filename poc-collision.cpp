@@ -2,8 +2,10 @@
 
 import casein;
 import dotz;
+import pixed;
 import quack;
 import ships;
+import silog;
 
 static constexpr const dotz::vec2 enemy_pos { -2, -4 };
 static dotz::vec2 g_player_pos { 2, 4 };
@@ -31,6 +33,33 @@ static void setup_buffer() {
 
 static void mouse_move() { g_player_pos = ships::mouse_pos() - 0.5f; }
 
+struct mask {
+  unsigned rows[16] {};
+};
+static mask g_masks[16][16] {};
+static void create_bitmaps(const pixed::context & ctx) {
+  for (auto y = 0, p = 0; y < ctx.h; y++) {
+    for (auto x = 0; x < ctx.w; x++, p++) {
+      auto sx = x / 16;
+      auto sy = y / 16;
+      auto px = x % 16;
+      auto py = y % 16;
+
+      if (ctx.image[p].a < 128) continue;
+
+      auto & row = g_masks[sy][sx].rows[py];
+      row |= 1 << (15 - px);
+    }
+  }
+
+  for (auto r : g_masks[2][0].rows) {
+    silog::log(silog::debug, "%08o", r);
+  }
+  for (auto r : g_masks[1][0].rows) {
+    silog::log(silog::debug, "%08o", r);
+  }
+}
+
 struct init {
   init() {
     using namespace casein;
@@ -44,6 +73,12 @@ struct init {
       ships::setup(r, 100);
     };
     on_frame = [](auto * r) { ships::run(r); };
-    start();
+
+    pixed::read("ships.png")
+        .map([](auto & ctx) {
+          create_bitmaps(ctx);
+          start();
+        })
+        .log_error();
   }
 } i;
