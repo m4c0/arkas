@@ -1,5 +1,6 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
+#pragma leco add_resource "ships.png"
 
 import dotz;
 import hai;
@@ -12,8 +13,10 @@ import voo;
 
 static quack::yakki::buffer * g_gnd_plane_buffer;
 static quack::yakki::buffer * g_sky_plane_buffer;
-static quack::yakki::buffer * g_top_buffer;
-static quack::yakki::image * g_image;
+static quack::yakki::image * g_plane_image;
+
+static quack::yakki::buffer * g_ship_buffer;
+static quack::yakki::image * g_ship_image;
 
 static constexpr const quack::upc game_area { {}, { 16 } };
 
@@ -44,6 +47,8 @@ static float g_displ_y = initial_displ_y;
 static plane::t g_gnd_plane {};
 static plane::t g_sky_plane {};
 
+static constexpr auto uv(int x, int y) { return dotz::vec2 { x, y } / 16.f; }
+
 static void update_data(quack::instance *& i) {
   for (auto & e : g_enemies) {
     if (!e.active) continue;
@@ -51,7 +56,9 @@ static void update_data(quack::instance *& i) {
     *i++ = {
       .position = e.pos,
       .size = { 1 },
-      .colour = { 0, 1, 0, 1 },
+      .uv0 = uv(0, 2),
+      .uv1 = uv(0, 2) + 1.f / 16.f,
+      .multiplier = { 1 },
     };
   }
 
@@ -61,14 +68,18 @@ static void update_data(quack::instance *& i) {
     *i++ = {
       .position = b.pos,
       .size = { 1 },
-      .colour = { 1, 0, 0, 1 },
+      .uv0 = uv(1, 0),
+      .uv1 = uv(1, 0) + 1.f / 16.f,
+      .multiplier = { 1 },
     };
   }
 
   *i++ = {
     .position = player_pos,
     .size = { 1, 1 },
-    .colour = { 1, 0, 1, 1 },
+    .uv0 = uv(0, 1),
+    .uv1 = uv(0, 1) + 1.f / 16.f,
+    .multiplier = { 1 },
   };
 }
 
@@ -264,16 +275,18 @@ struct init {
       };
       g_sky_plane_buffer->scissor() = s;
 
-      g_top_buffer = r->buffer(max_bullets + max_enemies + 1, &repaint);
-      g_top_buffer->pc() = game_area;
-      g_top_buffer->start();
+      g_ship_buffer = r->buffer(max_bullets + max_enemies + 1, &repaint);
+      g_ship_buffer->pc() = game_area;
+      g_ship_buffer->start();
 
-      g_image = r->image("atlas.png");
+      g_plane_image = r->image("atlas.png");
+      g_ship_image = r->image("ships.png");
     };
     on_frame = [](renderer * r) {
-      r->run(g_gnd_plane_buffer, g_image);
-      r->run(g_sky_plane_buffer, g_image);
-      r->run(g_top_buffer, g_image);
+      r->run(g_gnd_plane_buffer, g_plane_image);
+      r->run(g_sky_plane_buffer, g_plane_image);
+      r->run(g_ship_buffer, g_ship_image);
     };
+    start();
   }
 } i;
