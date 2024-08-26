@@ -19,18 +19,18 @@ struct mask {
 };
 static mask g_masks[16][16] {};
 
-static bool collided() {
-  auto bs = g_player_pos;
+static bool collided(dotz::vec2 b_pos, dotz::ivec2 b_uv, dotz::vec2 e_pos, dotz::ivec2 e_uv) {
+  auto bs = b_pos;
   auto be = bs + 1;
 
-  auto es = enemy_pos;
+  auto es = e_pos;
   auto ee = es + 1;
 
   if (ee.x < bs.x || es.x > be.x) return false;
   if (ee.y < bs.y || es.y > be.y) return false;
 
-  const auto & e_msk = g_masks[2][0];
-  const auto & b_msk = g_masks[1][0];
+  const auto & e_msk = g_masks[e_uv.y][e_uv.x];
+  const auto & b_msk = g_masks[b_uv.y][b_uv.x];
 
   int dx = (es.x - bs.x) * 16;
   // Should not happen, but FP precision am I right?
@@ -49,7 +49,7 @@ static bool collided() {
 }
 
 static void setup_buffer() {
-  if (g_blink && collided()) return;
+  if (g_blink && collided(g_player_pos, { 0, 1 }, enemy_pos, { 0, 2 })) return;
 
   ships::blit(enemy_pos, { 0, 2 });
   ships::blit(g_player_pos, { 0, 1 });
