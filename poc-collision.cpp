@@ -9,7 +9,18 @@ static constexpr const dotz::vec2 enemy_pos { -2, -4 };
 static dotz::vec2 g_player_pos { 2, 4 };
 static bool g_blink {};
 
-static bool collided() { return true; }
+static bool collided() {
+  auto bs = g_player_pos;
+  auto be = bs + 1;
+
+  auto es = enemy_pos;
+  auto ee = es + 1;
+
+  if (ee.x < bs.x || es.x > be.x) return false;
+  if (ee.y < bs.y || es.y > be.y) return false;
+
+  return true;
+}
 
 static void setup_buffer() {
   if (g_blink && collided()) return;
