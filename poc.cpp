@@ -1,6 +1,6 @@
 #pragma leco app
-#pragma leco add_resource "atlas.png"
 
+import atlas;
 import collision;
 import dotz;
 import hai;
@@ -11,12 +11,6 @@ import rng;
 import ships;
 import sitime;
 import voo;
-
-static quack::yakki::buffer * g_gnd_plane_buffer;
-static quack::yakki::buffer * g_sky_plane_buffer;
-static quack::yakki::image * g_plane_image;
-
-static constexpr const quack::upc game_area { {}, { 16 } };
 
 struct bullet {
   dotz::vec2 pos {};
@@ -39,11 +33,8 @@ static hai::array<enemy> g_enemies { max_enemies };
 static dotz::vec2 player_pos { -0.5f, 3.5f };
 static sitime::stopwatch timer {};
 
-static constexpr const float initial_displ_y = plane::t::draw_h - 2;
+static constexpr const float initial_displ_y = atlas::initial_displ_y;
 static float g_displ_y = initial_displ_y;
-
-static plane::t g_gnd_plane {};
-static plane::t g_sky_plane {};
 
 static void update_data() {
   for (auto & e : g_enemies) {
@@ -87,30 +78,15 @@ static void move_bullets(float dt) {
     if (!b.active) continue;
 
     b.pos.y -= dt * 20.f;
-    if (b.pos.y < -1 - game_area.grid_size.y / 2) b.active = false;
+    if (b.pos.y < atlas::min_area_y - 1) b.active = false;
   }
 }
 
 static void parallax(float dt) {
-  constexpr const auto hpw = plane::t::draw_w / 2.f;
-
   // TODO: fix upper bound
   // TODO: trigger "end level" when upper bound is reached
   g_displ_y = dotz::max(0, g_displ_y - dt);
-
-  auto plane_dx = 2.0f * (player_pos.x + 0.5f) / 8.0f;
-  auto plane_dy = 2.0f * (player_pos.y + 0.5f) / 8.0f;
-
-  g_gnd_plane_buffer->pc().grid_pos = {
-    plane_dx + plane::t::draw_w / 2.0f,
-    plane_dy + g_displ_y - hpw + 2.f,
-  };
-
-  plane_dx = 8.0f * (player_pos.x + 0.5f) / 8.0f;
-  g_sky_plane_buffer->pc().grid_pos = {
-    plane_dx + plane::t::draw_w / 2.0f,
-    plane_dy + g_displ_y - hpw + 8.f,
-  };
+  atlas::parallax(g_displ_y, player_pos);
 }
 
 static void move_enemies(float dt) {
@@ -142,7 +118,7 @@ static void check_bullet_enemy_collisions() {
   }
 }
 
-static void repaint() {
+static void tick() {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
@@ -158,7 +134,7 @@ static void repaint() {
 static void init_ground_plane() {
   for (auto y = 0; y < plane::t::h; y++) {
     for (auto x = 0; x < plane::t::w; x++) {
-      g_gnd_plane.at({ x, y }) = plane::at_water;
+      atlas::ground({ x, y }) = plane::at_water;
     }
   }
 
@@ -166,14 +142,14 @@ static void init_ground_plane() {
   const auto b = plane::t::h - 2;
 
   for (auto y = 1; y <= b; y++) {
-    g_gnd_plane.at({ 1, y }) = plane::at_grass;
-    g_gnd_plane.at({ r, y }) = plane::at_grass;
+    atlas::ground({ 1, y }) = plane::at_grass;
+    atlas::ground({ r, y }) = plane::at_grass;
 
-    g_gnd_plane.at({ static_cast<int>(rng::rand(r)), y }) = plane::at_grass;
+    atlas::ground({ static_cast<int>(rng::rand(r)), y }) = plane::at_grass;
   }
   for (auto x = 1; x <= r; x++) {
-    g_gnd_plane.at({ x, 1 }) = plane::at_grass;
-    g_gnd_plane.at({ x, b }) = plane::at_grass;
+    atlas::ground({ x, 1 }) = plane::at_grass;
+    atlas::ground({ x, b }) = plane::at_grass;
   }
 }
 
@@ -182,36 +158,36 @@ static void init_sky_plane() {
   const auto b = plane::t::h - 2;
 
   for (auto y = 1; y <= b; y++) {
-    g_sky_plane.at({ 1, y }) = plane::at_cloud;
-    g_sky_plane.at({ r, y }) = plane::at_cloud;
+    atlas::sky({ 1, y }) = plane::at_cloud;
+    atlas::sky({ r, y }) = plane::at_cloud;
 
-    g_sky_plane.at({ static_cast<int>(rng::rand(r)), y }) = plane::at_cloud;
+    atlas::sky({ static_cast<int>(rng::rand(r)), y }) = plane::at_cloud;
   }
   for (auto x = 1; x <= r; x++) {
-    g_sky_plane.at({ x, 1 }) = plane::at_cloud;
-    g_sky_plane.at({ x, b }) = plane::at_cloud;
+    atlas::sky({ x, 1 }) = plane::at_cloud;
+    atlas::sky({ x, b }) = plane::at_cloud;
   }
 }
 
 static void init_enemies() {
-  constexpr const auto sy = game_area.grid_size.y;
+  constexpr const auto sy = atlas::min_area_y - 1;
 
   auto * e = g_enemies.begin();
 
-  *e++ = { .spawn_disp_y = 2, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 2.5f, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 3, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 3.5f, .pos = { 0.f, -sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 2, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 2.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 3, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_disp_y = 3.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
 
-  *e++ = { .spawn_disp_y = 5.0f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 5.5f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 6.0f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 6.5f, .pos = { -5.f, -sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 5.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 5.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 6.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_disp_y = 6.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
 
-  *e++ = { .spawn_disp_y = 8.0f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 8.5f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 9.0f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 9.5f, .pos = { 5.f, -sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 8.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 8.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 9.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_disp_y = 9.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
 }
 
 struct init {
@@ -225,36 +201,13 @@ struct init {
 
     using namespace quack::yakki;
     on_start = [](resources * r) {
-      auto hpw = plane::t::draw_w / 2.f;
+      atlas::setup(r);
 
-      quack::scissor s {
-        .offset = -game_area.grid_size / 2,
-        .extent = game_area.grid_size,
-        .ref = &game_area,
-      };
-
-      g_gnd_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_gnd_plane, i); });
-      g_gnd_plane_buffer->pc() = {
-        .grid_pos = { hpw, initial_displ_y - hpw + 2 },
-        .grid_size = { plane::t::draw_w - 4 },
-      };
-      g_gnd_plane_buffer->scissor() = s;
-
-      g_sky_plane_buffer = r->buffer(plane::t::tiles, [](auto *& i) { plane::render(&g_sky_plane, i); });
-      g_sky_plane_buffer->pc() = {
-        .grid_pos = { hpw, initial_displ_y - hpw + 8 },
-        .grid_size = { plane::t::draw_w - 16 },
-      };
-      g_sky_plane_buffer->scissor() = s;
-
-      ships::on_update = repaint;
+      ships::on_update = tick;
       ships::setup(r, max_bullets + max_enemies + 1);
-
-      g_plane_image = r->image("atlas.png");
     };
     on_frame = [](renderer * r) {
-      r->run(g_gnd_plane_buffer, g_plane_image);
-      r->run(g_sky_plane_buffer, g_plane_image);
+      atlas::run(r);
       ships::run(r);
     };
     start();
