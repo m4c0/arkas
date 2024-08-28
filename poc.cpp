@@ -25,7 +25,7 @@ struct enemy {
   dotz::vec2 pos {};
   dotz::vec2 speed {};
   dotz::vec2 accel {};
-  bool active {};
+  int life {};
 };
 static constexpr const auto max_enemies = 1024;
 static hai::array<enemy> g_enemies { max_enemies };
@@ -38,7 +38,7 @@ static float g_displ_y = initial_displ_y;
 
 static void update_data() {
   for (auto & e : g_enemies) {
-    if (!e.active) continue;
+    if (e.life <= 0) continue;
 
     ships::blit(e.pos, { 0, 2 });
   }
@@ -93,11 +93,11 @@ static void move_enemies(float dt) {
   for (auto & e : g_enemies) {
     if (e.spawn_disp_y == 0) continue;
 
-    if (e.active) {
+    if (e.life > 0) {
       e.pos = e.pos + e.speed * dt;
       e.speed = e.speed + e.accel * dt;
     } else if (initial_displ_y - e.spawn_disp_y > g_displ_y) {
-      e.active = true;
+      e.life = 1;
     }
   }
 }
@@ -107,7 +107,7 @@ static void check_bullet_enemy_collisions() {
     if (!b.active) continue;
 
     for (auto & e : g_enemies) {
-      if (!e.active) continue;
+      if (e.life <= 0) continue;
 
       if (!collision::between(e.pos, { 0, 2 }, b.pos, { 1, 0 })) continue;
 
