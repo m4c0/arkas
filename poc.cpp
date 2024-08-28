@@ -21,7 +21,7 @@ static hai::array<bullet> g_bullets { max_bullets };
 static float g_gun_cooldown = 1e20;
 
 struct enemy {
-  float spawn_disp_y {};
+  float spawn_time {};
   dotz::vec2 pos {};
   dotz::vec2 speed {};
   dotz::vec2 accel {};
@@ -34,7 +34,7 @@ static dotz::vec2 player_pos { -0.5f, 3.5f };
 static sitime::stopwatch timer {};
 
 static constexpr const float initial_displ_y = atlas::initial_displ_y;
-static float g_displ_y = initial_displ_y;
+static sitime::stopwatch g_lvl_timer {};
 
 static void update_data() {
   for (auto & e : g_enemies) {
@@ -85,18 +85,19 @@ static void move_bullets(float dt) {
 static void parallax(float dt) {
   // TODO: fix upper bound
   // TODO: trigger "end level" when upper bound is reached
-  g_displ_y = dotz::max(0, g_displ_y - dt);
-  atlas::parallax(g_displ_y, player_pos);
+  auto displ_y = initial_displ_y - g_lvl_timer.millis() / 1000.0f;
+  atlas::parallax(displ_y, player_pos);
 }
 
 static void move_enemies(float dt) {
+  auto t = g_lvl_timer.millis() / 1000.0f;
   for (auto & e : g_enemies) {
-    if (e.spawn_disp_y == 0) continue;
+    if (e.spawn_time == 0) continue;
 
     if (e.life > 0) {
       e.pos = e.pos + e.speed * dt;
       e.speed = e.speed + e.accel * dt;
-    } else if (initial_displ_y - e.spawn_disp_y > g_displ_y) {
+    } else if (t > e.spawn_time) {
       e.life = 1;
     }
   }
@@ -174,20 +175,20 @@ static void init_enemies() {
 
   auto * e = g_enemies.begin();
 
-  *e++ = { .spawn_disp_y = 2, .pos = { 0.f, sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 2.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 3, .pos = { 0.f, sy }, .speed = { 0, 5 } };
-  *e++ = { .spawn_disp_y = 3.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_time = 2, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_time = 2.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_time = 3, .pos = { 0.f, sy }, .speed = { 0, 5 } };
+  *e++ = { .spawn_time = 3.5f, .pos = { 0.f, sy }, .speed = { 0, 5 } };
 
-  *e++ = { .spawn_disp_y = 5.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 5.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 6.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
-  *e++ = { .spawn_disp_y = 6.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_time = 5.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_time = 5.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_time = 6.0f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
+  *e++ = { .spawn_time = 6.5f, .pos = { -5.f, sy }, .speed = { 0, 5 }, .accel = { 1, 0 } };
 
-  *e++ = { .spawn_disp_y = 8.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 8.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 9.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
-  *e++ = { .spawn_disp_y = 9.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_time = 8.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_time = 8.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_time = 9.0f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
+  *e++ = { .spawn_time = 9.5f, .pos = { 5.f, sy }, .speed = { 0, 5 }, .accel = { -1, 0 } };
 }
 
 struct init {
