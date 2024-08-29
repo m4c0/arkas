@@ -3,6 +3,7 @@
 import atlas;
 import collision;
 import dotz;
+import enemies;
 import hai;
 import input;
 import plane;
@@ -20,18 +21,6 @@ static constexpr const auto max_bullets = 16;
 static hai::array<bullet> g_bullets { max_bullets };
 static float g_gun_cooldown = 1e20;
 
-struct enemy {
-  float spawn_time {};
-  dotz::vec2 s0 {};
-  dotz::vec2 v0 {};
-  dotz::vec2 a {};
-
-  dotz::vec2 pos {};
-  int life {};
-};
-static constexpr const auto max_enemies = 1024;
-static hai::array<enemy> g_enemies { max_enemies };
-
 static dotz::vec2 player_pos { -0.5f, 3.5f };
 static sitime::stopwatch timer {};
 
@@ -39,11 +28,7 @@ static constexpr const float initial_displ_y = atlas::initial_displ_y;
 static sitime::stopwatch g_lvl_timer {};
 
 static void update_data() {
-  for (auto & e : g_enemies) {
-    if (e.life <= 0) continue;
-
-    ships::blit(e.pos, { 0, 2 });
-  }
+  enemies::blit();
 
   for (auto & b : g_bullets) {
     if (!b.active) continue;
@@ -84,41 +69,24 @@ static void move_bullets(float dt) {
   }
 }
 
-static void parallax(float dt) {
+static void parallax(float t1) {
   // TODO: fix upper bound
   // TODO: trigger "end level" when upper bound is reached
-  auto displ_y = initial_displ_y - g_lvl_timer.millis() / 1000.0f;
+  auto displ_y = initial_displ_y - t1;
   atlas::parallax(displ_y, player_pos);
-}
-
-static void move_enemies(float dt) {
-  auto t1 = g_lvl_timer.millis() / 1000.0f;
-  for (auto & e : g_enemies) {
-    if (e.spawn_time == 0) continue;
-
-    if (e.life > 0) {
-      auto t = t1 - e.spawn_time;
-      e.pos = e.s0 + e.v0 * t + e.a * t * t * 2.0f;
-    } else if (t1 > e.spawn_time) {
-      e.life = 1;
-      e.pos = e.s0;
-    }
-  }
 }
 
 static void check_bullet_enemy_collisions() {
   for (auto & b : g_bullets) {
     if (!b.active) continue;
 
-    for (auto & e : g_enemies) {
-      if (e.life <= 0) continue;
-
-      if (!collision::between(e.pos, { 0, 2 }, b.pos, { 1, 0 })) continue;
+    enemies::iterate_alive([&](auto & e) {
+      if (!collision::between(e.pos, { 0, 2 }, b.pos, { 1, 0 })) return true;
 
       e = {};
       b = {};
-      break;
-    }
+      return false;
+    });
   }
 }
 
@@ -126,12 +94,15 @@ static void tick() {
   float dt = timer.millis() / 1000.f;
   timer = {};
 
+  auto t1 = g_lvl_timer.millis() / 1000.0f;
+
   check_bullet_enemy_collisions();
   move_player(dt);
   shoot(dt);
   move_bullets(dt);
-  move_enemies(dt);
-  parallax(dt);
+
+  enemies::move_enemies(t1);
+  parallax(t1);
   update_data();
 }
 
@@ -174,24 +145,24 @@ static void init_sky_plane() {
 }
 
 static void init_enemies() {
-  constexpr const auto sy = atlas::min_area_y - 1;
+  enemies::reset([](auto * e) {
+    constexpr const auto sy = atlas::min_area_y - 1;
 
-  auto * e = g_enemies.begin();
+    *e++ = { .spawn_time = 2, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 2.5f, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 3, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 3.5f, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
 
-  *e++ = { .spawn_time = 2, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
-  *e++ = { .spawn_time = 2.5f, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
-  *e++ = { .spawn_time = 3, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
-  *e++ = { .spawn_time = 3.5f, .s0 = { 0.f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 5.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 5.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 6.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 6.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
 
-  *e++ = { .spawn_time = 5.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-  *e++ = { .spawn_time = 5.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-  *e++ = { .spawn_time = 6.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-  *e++ = { .spawn_time = 6.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-
-  *e++ = { .spawn_time = 8.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-  *e++ = { .spawn_time = 8.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-  *e++ = { .spawn_time = 9.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-  *e++ = { .spawn_time = 9.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 8.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 8.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 9.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 9.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+  });
 }
 
 struct init {
@@ -208,7 +179,7 @@ struct init {
       atlas::setup(r);
 
       ships::on_update = tick;
-      ships::setup(r, max_bullets + max_enemies + 1);
+      ships::setup(r, max_bullets + enemies::max_enemies + 1);
     };
     on_frame = [](renderer * r) {
       atlas::run(r);
