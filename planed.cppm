@@ -92,6 +92,7 @@ namespace planed::editor {
     using namespace quack::yakki;
 
     reset_k(KEY_DOWN);
+    reset_k(KEY_UP);
 
     handle(KEY_DOWN, K_UP, move(0, -1));
     handle(KEY_DOWN, K_DOWN, move(0, 1));

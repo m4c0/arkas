@@ -28,6 +28,7 @@ static void load_enemies() {
   });
 }
 
+static bool g_precision_move {};
 static float g_x = 0;
 static float g_displ_y = 0;
 
@@ -44,9 +45,9 @@ static constexpr auto strafe(int dx) {
     update_parallax();
   };
 }
-static constexpr auto scroll(int dx) {
+static constexpr auto scroll(float dx) {
   return [=] {
-    g_displ_y += dx;
+    g_displ_y += g_precision_move ? 0.125f * dx : dx;
     update_parallax();
   };
 }
@@ -68,6 +69,7 @@ namespace planed::demo {
     load_enemies();
 
     reset_k(KEY_DOWN);
+    reset_k(KEY_UP);
 
     handle(KEY_DOWN, K_UP, scroll(1));
     handle(KEY_DOWN, K_DOWN, scroll(-1));
@@ -75,6 +77,9 @@ namespace planed::demo {
     handle(KEY_DOWN, K_RIGHT, strafe(1));
 
     handle(KEY_DOWN, K_ENTER, planed::editor::start);
+
+    handle(KEY_DOWN, K_C, [] { g_precision_move = true; });
+    handle(KEY_UP, K_C, [] { g_precision_move = false; });
 
     on_frame = [](auto * r) {
       atlas::run(r);
