@@ -24,7 +24,16 @@ static void update_data(quack::instance *& i) {
   plane::blit(i, g_cursor * 2.f, plane::uv0(g_brush));
 }
 
-static void update_ui() { g_buffer->run_once(); }
+static void update_ui() {
+  constexpr const auto w = plane::t::draw_w;
+  constexpr const auto hpw = w / 2.0f;
+
+  auto y = dotz::min(dotz::max(hpw, g_cursor.y * 2.0f), plane::t::draw_h - hpw);
+
+  g_buffer->pc() = { { hpw, y }, { w } };
+
+  g_buffer->run_once();
+}
 static constexpr auto move(int dx, int dy) {
   return [=] {
     auto c = g_cursor + dotz::ivec2 { dx, dy };
@@ -89,10 +98,7 @@ struct init {
     handle(KEY_DOWN, K_L, fill);
 
     on_start = [](auto * r) {
-      constexpr const auto w = plane::t::draw_w;
-
       g_buffer = r->buffer(plane::t::tiles + 2, update_data);
-      g_buffer->pc() = { { w / 2.f }, { w } };
       g_image = r->image("atlas.png");
       update_ui();
     };
