@@ -7,6 +7,7 @@ import dotz;
 import plane;
 import quack;
 
+static quack::yakki::buffer * g_atlas_buffer {};
 static quack::yakki::buffer * g_ui_buffer {};
 static dotz::ivec2 g_cursor {};
 static plane::area_type g_brush {};
@@ -20,7 +21,7 @@ static void update_data(quack::instance *& i) {
   plane::blit(i, g_cursor * 2.f, plane::uv0(g_brush));
 }
 
-static void update_atlas() { atlas::ground()->run_once(); }
+static void update_atlas() { g_atlas_buffer->run_once(); }
 
 static void update_ui() {
   constexpr const auto w = plane::t::draw_w;
@@ -28,7 +29,7 @@ static void update_ui() {
 
   auto y = dotz::min(dotz::max(hpw, g_cursor.y * 2.0f), plane::t::draw_h - hpw);
 
-  atlas::ground()->pc() = { { hpw, y }, { w } };
+  g_atlas_buffer->pc() = { { hpw, y }, { w } };
   g_ui_buffer->pc() = { { hpw, y }, { w } };
   g_ui_buffer->run_once();
 }
@@ -43,12 +44,24 @@ static constexpr auto move(int dx, int dy) {
 static constexpr auto brush(plane::area_type n) {
   return [=] {
     g_brush = n;
+
+    switch (n) {
+      case plane::at_cloud:
+      case plane::at_void: g_atlas_buffer = atlas::sky(); break;
+      default: g_atlas_buffer = atlas::ground(); break;
+    }
+
     update_ui();
   };
 }
 
 static void stamp() {
-  atlas::ground(g_cursor) = g_brush;
+  if (g_atlas_buffer == atlas::ground()) {
+    atlas::ground(g_cursor) = g_brush;
+  } else {
+    atlas::sky(g_cursor) = g_brush;
+  }
+
   update_atlas();
 }
 
@@ -94,11 +107,12 @@ struct init {
     on_start = [](auto * r) {
       atlas::setup(r);
 
+      g_atlas_buffer = atlas::ground();
       g_ui_buffer = r->buffer(2, update_data);
       update_ui();
     };
     on_frame = [](auto * r) {
-      atlas::run(r);
+      r->run(g_atlas_buffer, atlas::image());
       r->run(g_ui_buffer, atlas::image());
     };
 
