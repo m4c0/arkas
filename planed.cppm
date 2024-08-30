@@ -1,6 +1,7 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
-
+export module planed;
+import :demo;
 import atlas;
 import casein;
 import dotz;
@@ -85,10 +86,12 @@ static void fill() {
   update_atlas();
 }
 
-struct init {
-  init() {
+namespace planed::editor {
+  void start() {
     using namespace casein;
     using namespace quack::yakki;
+
+    reset_k(KEY_DOWN);
 
     handle(KEY_DOWN, K_UP, move(0, -1));
     handle(KEY_DOWN, K_DOWN, move(0, 1));
@@ -104,17 +107,30 @@ struct init {
     handle(KEY_DOWN, K_SPACE, stamp);
     handle(KEY_DOWN, K_L, fill);
 
+    handle(KEY_DOWN, K_ESCAPE, planed::demo::start);
+
+    on_frame = [](auto * r) {
+      r->run(g_atlas_buffer, atlas::image());
+      r->run(g_ui_buffer, atlas::image());
+    };
+  }
+} // namespace planed::editor
+
+struct init {
+  init() {
+    using namespace casein;
+    using namespace quack::yakki;
+
     on_start = [](auto * r) {
       atlas::setup(r);
+      planed::demo::setup(r);
 
       g_atlas_buffer = atlas::ground();
       g_ui_buffer = r->buffer(2, update_data);
       update_ui();
     };
-    on_frame = [](auto * r) {
-      r->run(g_atlas_buffer, atlas::image());
-      r->run(g_ui_buffer, atlas::image());
-    };
+
+    planed::editor::start();
 
     start();
   }

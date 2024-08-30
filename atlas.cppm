@@ -28,12 +28,14 @@ export namespace atlas {
       plane_dx + plane::t::draw_w / 2.0f,
       plane_dy + displ_y - hpw + 2.f,
     };
+    g_gnd_plane_buffer->pc().grid_size = { plane::t::draw_w - 4 };
 
     plane_dx = 8.0f * (player_pos.x + 0.5f) / 8.0f;
     g_sky_plane_buffer->pc().grid_pos = {
       plane_dx + plane::t::draw_w / 2.0f,
       plane_dy + displ_y - hpw + 8.f,
     };
+    g_sky_plane_buffer->pc().grid_size = { plane::t::draw_w - 16 };
   }
 
   void setup(quack::yakki::resources * r) {
