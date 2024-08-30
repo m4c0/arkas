@@ -65,6 +65,10 @@ export namespace atlas {
     r->run(g_sky_plane_buffer, g_plane_image);
   }
 
+  [[nodiscard]] auto * ground() { return g_gnd_plane_buffer; }
+  [[nodiscard]] auto * sky() { return g_sky_plane_buffer; }
+  [[nodiscard]] auto * image() { return g_plane_image; }
+
   [[nodiscard]] auto & ground(dotz::ivec2 p) { return g_gnd_plane.at(p); }
   [[nodiscard]] auto & sky(dotz::ivec2 p) { return g_sky_plane.at(p); }
 } // namespace atlas

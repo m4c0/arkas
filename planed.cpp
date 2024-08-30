@@ -1,21 +1,17 @@
 #pragma leco app
 #pragma leco add_resource "atlas.png"
 
+import atlas;
 import casein;
 import dotz;
 import plane;
 import quack;
 
-static quack::yakki::buffer * g_buffer {};
-static quack::yakki::image * g_image {};
-static plane::t g_plane {};
-
+static quack::yakki::buffer * g_ui_buffer {};
 static dotz::ivec2 g_cursor {};
 static plane::area_type g_brush {};
 
 static void update_data(quack::instance *& i) {
-  plane::render(&g_plane, i);
-
   *i++ = {
     .position = g_cursor * 2.f - 0.1f,
     .size = { 1.2f },
@@ -24,16 +20,19 @@ static void update_data(quack::instance *& i) {
   plane::blit(i, g_cursor * 2.f, plane::uv0(g_brush));
 }
 
+static void update_atlas() { atlas::ground()->run_once(); }
+
 static void update_ui() {
   constexpr const auto w = plane::t::draw_w;
   constexpr const auto hpw = w / 2.0f;
 
   auto y = dotz::min(dotz::max(hpw, g_cursor.y * 2.0f), plane::t::draw_h - hpw);
 
-  g_buffer->pc() = { { hpw, y }, { w } };
-
-  g_buffer->run_once();
+  atlas::ground()->pc() = { { hpw, y }, { w } };
+  g_ui_buffer->pc() = { { hpw, y }, { w } };
+  g_ui_buffer->run_once();
 }
+
 static constexpr auto move(int dx, int dy) {
   return [=] {
     auto c = g_cursor + dotz::ivec2 { dx, dy };
@@ -44,19 +43,19 @@ static constexpr auto move(int dx, int dy) {
 static constexpr auto brush(plane::area_type n) {
   return [=] {
     g_brush = n;
-    g_buffer->run_once();
+    update_ui();
   };
 }
 
 static void stamp() {
-  g_plane.at(g_cursor) = g_brush;
-  g_buffer->run_once();
+  atlas::ground(g_cursor) = g_brush;
+  update_atlas();
 }
 
 static void fill(int x, int y, dotz::ivec2 st) {
   if (x < 0 || x >= plane::t::w || y < 0 || y >= plane::t::h) return;
 
-  auto & p = g_plane.at({ x, y });
+  auto & p = atlas::ground({ x, y });
   if (p != st) return;
 
   p = g_brush;
@@ -66,22 +65,17 @@ static void fill(int x, int y, dotz::ivec2 st) {
   fill(x, y + 1, st);
 }
 static void fill() {
-  auto p = g_plane.at(g_cursor);
+  auto p = atlas::ground(g_cursor);
   if (p == g_brush) return;
 
   fill(g_cursor.x, g_cursor.y, p);
+  update_atlas();
 }
 
 struct init {
   init() {
     using namespace casein;
     using namespace quack::yakki;
-
-    for (auto y = 0; y < plane::t::h; y++) {
-      for (auto x = 0; x < plane::t::w; x++) {
-        g_plane.at({ x, y }) = plane::at_water;
-      }
-    }
 
     handle(KEY_DOWN, K_UP, move(0, -1));
     handle(KEY_DOWN, K_DOWN, move(0, 1));
@@ -98,11 +92,15 @@ struct init {
     handle(KEY_DOWN, K_L, fill);
 
     on_start = [](auto * r) {
-      g_buffer = r->buffer(plane::t::tiles + 2, update_data);
-      g_image = r->image("atlas.png");
+      atlas::setup(r);
+
+      g_ui_buffer = r->buffer(2, update_data);
       update_ui();
     };
-    on_frame = [](auto * r) { r->run(g_buffer, g_image); };
+    on_frame = [](auto * r) {
+      atlas::run(r);
+      r->run(g_ui_buffer, atlas::image());
+    };
 
     start();
   }
