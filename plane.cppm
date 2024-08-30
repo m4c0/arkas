@@ -36,7 +36,7 @@ namespace plane {
     auto p = uv0(a, b);
     return p == 0 ? 0 : p + d;
   }
-  static constexpr dotz::ivec2 uv0(area_type a) { return uv0(a, a); }
+  export inline constexpr dotz::ivec2 uv0(area_type a) { return uv0(a, a); }
 
   export inline void blit(quack::instance *& i, dotz::vec2 p, dotz::ivec2 uv0) {
     if (uv0 == 0) return;
