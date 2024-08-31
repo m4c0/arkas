@@ -155,14 +155,6 @@ static void tick() {
   update_data();
 }
 
-static void init_ground_plane() {
-  for (auto y = 0; y < plane::t::h; y++) {
-    for (auto x = 0; x < plane::t::w; x++) {
-      atlas::ground({ x, y }) = ground_plane.at({ x, y });
-    }
-  }
-}
-
 static void init_sky_plane() {
   const auto r = plane::t::w - 2;
   const auto b = plane::t::h - 2;
@@ -202,7 +194,7 @@ static void init_enemies() {
 
 struct init {
   init() {
-    init_ground_plane();
+    atlas::planes::ground() = ground_plane;
     init_sky_plane();
     init_enemies();
 
