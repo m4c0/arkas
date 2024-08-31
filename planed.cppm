@@ -48,8 +48,8 @@ static constexpr auto brush(plane::area_type n) {
 
     switch (n) {
       case plane::at_cloud:
-      case plane::at_void: g_atlas_buffer = atlas::sky(); break;
-      default: g_atlas_buffer = atlas::ground(); break;
+      case plane::at_void: g_atlas_buffer = atlas::buffers::sky(); break;
+      default: g_atlas_buffer = atlas::buffers::ground(); break;
     }
 
     update_ui();
@@ -57,7 +57,7 @@ static constexpr auto brush(plane::area_type n) {
 }
 
 static void stamp() {
-  if (g_atlas_buffer == atlas::ground()) {
+  if (g_atlas_buffer == atlas::buffers::ground()) {
     atlas::ground(g_cursor) = g_brush;
   } else {
     atlas::sky(g_cursor) = g_brush;
@@ -126,7 +126,7 @@ struct init {
       atlas::setup(r);
       planed::demo::setup(r);
 
-      g_atlas_buffer = atlas::ground();
+      g_atlas_buffer = atlas::buffers::ground();
       g_ui_buffer = r->buffer(2, update_data);
       update_ui();
     };
