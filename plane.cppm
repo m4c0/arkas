@@ -65,6 +65,7 @@ namespace plane {
 
   public:
     constexpr auto & at(dotz::ivec2 p) { return m_seeds[p.y][p.x]; }
+    constexpr auto at(dotz::ivec2 p) const { return m_seeds[p.y][p.x]; }
   };
 
   export void render(plane::t * pl, quack::instance *& i) {

@@ -13,6 +13,55 @@ import ships;
 import sitime;
 import voo;
 
+static constexpr const char ground_data[plane::t::h][plane::t::w + 1] {
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000000000000000",
+  "0000111111111111",
+  "0011111100011111",
+  "0111100000111100",
+  "0111100000111000",
+};
+static constexpr const plane::t ground_plane = [] {
+  plane::t res {};
+  for (auto y = 0; y < plane::t::h; y++) {
+    for (auto x = 0; x < plane::t::w; x++) {
+      auto & p = res.at({ x, y });
+      switch (ground_data[y][x]) {
+        case '0': p = plane::at_water; break;
+        case '1': p = plane::at_grass; break;
+        default: throw 0;
+      }
+    }
+  }
+  return res;
+}();
+
 struct bullet {
   dotz::vec2 pos {};
   bool active {};
@@ -109,22 +158,8 @@ static void tick() {
 static void init_ground_plane() {
   for (auto y = 0; y < plane::t::h; y++) {
     for (auto x = 0; x < plane::t::w; x++) {
-      atlas::ground({ x, y }) = plane::at_water;
+      atlas::ground({ x, y }) = ground_plane.at({ x, y });
     }
-  }
-
-  const auto r = plane::t::w - 2;
-  const auto b = plane::t::h - 2;
-
-  for (auto y = 1; y <= b; y++) {
-    atlas::ground({ 1, y }) = plane::at_grass;
-    atlas::ground({ r, y }) = plane::at_grass;
-
-    atlas::ground({ static_cast<int>(rng::rand(r)), y }) = plane::at_grass;
-  }
-  for (auto x = 1; x <= r; x++) {
-    atlas::ground({ x, 1 }) = plane::at_grass;
-    atlas::ground({ x, b }) = plane::at_grass;
   }
 }
 
