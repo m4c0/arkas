@@ -18,6 +18,7 @@ static void setup_buffer(quack::instance *& i) {
 void ships::setup(quack::yakki::resources * r, unsigned quad_count) {
   g_buffer = r->buffer(quad_count, setup_buffer);
   g_buffer->pc() = game_area;
+  g_buffer->scissor() = { { -8 }, { 16 }, &game_area };
   g_buffer->start();
 
   g_image = r->image("ships.png");
