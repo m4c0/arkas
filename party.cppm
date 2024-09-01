@@ -45,8 +45,9 @@ static void fill_buffer(quack::instance *& i) {
           .pos = { rng::randf() * 2.5f, rng::randf() * 2.5f },
           .life = 0.5,
         };
+        g_last_emitted = n;
+        break;
       }
-      g_last_emitted = n;
     }
 
     g_time_since_last_emit = {};
