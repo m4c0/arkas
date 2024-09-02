@@ -46,44 +46,23 @@ static dotz::vec2 random_circle(float max_r) {
   return { x, y };
 }
 
-struct emitter {
-  dotz::vec2 center {};
-  float radius {};
-  float life_min {};
-  float life_max {};
-  unsigned count {};
-};
-static void emit(const emitter & e) {
-  auto qty = e.count;
+static void emit(unsigned qty, auto && fn) {
   for (auto i = 0; i < max_particles && qty > 0; i++) {
     auto n = (i + g_last_emitted) % max_particles;
     if (g_parts[n].life > 0) continue;
 
-    auto p = random_circle(e.radius);
-    auto life = e.life_min + rng::randf() * (e.life_max - e.life_min);
-
-    g_parts[n] = particle {
-      .pos = e.center + p,
-      .life = life,
-    };
+    g_parts[n] = fn();
     g_last_emitted = n;
     qty--;
   }
 }
 
-static void on_timer() {
-  emit({
-    .center = { rng::randf() * 2.5f, rng::randf() * 2.5f },
-    .life_min = 0.5f,
-    .life_max = 0.5f,
-    .count = 1,
-  });
-  emit({
-    .center = { -3 + rng::randf() * 1.5f, rng::randf() * 1.5f },
-    .radius = 0.3f,
-    .life_min = 0.3f,
-    .life_max = 0.9f,
-    .count = 10,
+static void fire() {
+  emit(100, [] {
+    return particle {
+      .pos = random_circle(0.3f),
+      .life = 0.6f + rng::randf() * 0.3f,
+    };
   });
 }
 
@@ -103,6 +82,6 @@ struct init {
     };
     start();
 
-    casein::handle(casein::TIMER, on_timer);
+    casein::handle(casein::KEY_DOWN, casein::K_SPACE, fire);
   }
 } i;
