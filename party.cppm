@@ -39,7 +39,9 @@ static void fill_buffer(quack::instance *& i) {
 
 struct emitter {
   dotz::vec2 center {};
-  float life {};
+  float radius {};
+  float life_min {};
+  float life_max {};
   unsigned count {};
 };
 static void emit(const emitter & e) {
@@ -47,10 +49,16 @@ static void emit(const emitter & e) {
   for (auto i = 0; i < max_particles && qty > 0; i++) {
     auto n = (i + g_last_emitted) % max_particles;
     if (g_parts[n].life > 0) continue;
+    
+    dotz::vec2 d { rng::randf(), rng::randf() };
+    d = dotz::normalise(d) * 2.0f - 1.0f;
+    d = d * e.radius;
+
+    auto life = e.life_min + rng::randf() * (e.life_max - e.life_min);
 
     g_parts[n] = particle {
-      .pos = e.center,
-      .life = e.life,
+      .pos = e.center + d,
+      .life = life,
     };
     g_last_emitted = n;
     qty--;
@@ -60,13 +68,16 @@ static void emit(const emitter & e) {
 static void on_timer() {
   emit({
     .center = { rng::randf() * 2.5f, rng::randf() * 2.5f },
-    .life = 0.5f,
+    .life_min = 0.5f,
+    .life_max = 0.5f,
     .count = 1,
   });
   emit({
-    .center = { -3 + rng::randf() * 2.5f, rng::randf() * 2.5f },
-    .life = 0.5f,
-    .count = 1,
+    .center = { -3 + rng::randf() * 0.5f, rng::randf() * 0.5f },
+    .radius = 0.3f,
+    .life_min = 0.3f,
+    .life_max = 0.9f,
+    .count = 10,
   });
 }
 
