@@ -13,7 +13,9 @@ struct init {
     start();
 
     casein::window_title = "Particle FX testbench";
-    casein::handle(casein::KEY_DOWN, casein::K_SPACE, party::fx::fire);
+    casein::handle(casein::KEY_DOWN, casein::K_SPACE, [] {
+      party::fx::fire({}, { 1, 1 });
+    });
   }
 } i;
 
