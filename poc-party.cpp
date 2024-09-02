@@ -9,7 +9,7 @@ struct init {
     using namespace quack::yakki;
 
     on_start = party::setup;
-    on_frame = party::frame;
+    on_frame = party::run;
     start();
 
     casein::window_title = "Particle FX testbench";

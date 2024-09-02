@@ -7,6 +7,7 @@ import enemies;
 import hai;
 import input;
 import level;
+import party;
 import plane;
 import quack;
 import rng;
@@ -84,6 +85,8 @@ static void check_bullet_enemy_collisions() {
     enemies::iterate_alive([&](auto & e) {
       if (!collision::between(e.pos, { 0, 2 }, b.pos, { 1, 0 })) return true;
 
+      party::fx::fire(e.pos + 0.5, e.speed);
+
       e = {};
       b = {};
       return false;
@@ -117,6 +120,7 @@ struct init {
     using namespace quack::yakki;
     on_start = [](resources * r) {
       atlas::setup(r);
+      party::setup(r);
 
       ships::on_update = tick;
       ships::setup(r, max_bullets + enemies::max_enemies + 1);
@@ -124,6 +128,7 @@ struct init {
     on_frame = [](renderer * r) {
       atlas::run(r);
       ships::run(r);
+      party::run(r);
     };
     start();
   }

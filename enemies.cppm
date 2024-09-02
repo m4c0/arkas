@@ -11,6 +11,7 @@ namespace enemies {
     dotz::vec2 a {};
 
     dotz::vec2 pos {};
+    dotz::vec2 speed {};
     int life {};
   };
   export constexpr const auto max_enemies = 1024;
@@ -31,6 +32,7 @@ namespace enemies {
       if (e.life > 0) {
         auto t = t1 - e.spawn_time;
         e.pos = e.s0 + e.v0 * t + e.a * t * t * 2.0f;
+        e.speed = e.v0 + e.a * t;
       } else if (t1 > e.spawn_time) {
         e.life = 1;
         e.pos = e.s0;

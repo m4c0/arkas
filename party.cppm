@@ -67,7 +67,7 @@ export namespace party {
 
     g_image = r->image("party.png");
   }
-  void frame(quack::yakki::renderer * r) {
+  void run(quack::yakki::renderer * r) {
     r->run(g_buffer, g_image);
   }
 }
