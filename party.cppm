@@ -35,6 +35,7 @@ static void fill_buffer(quack::instance *& i) {
       .colour = { 1.f * p.life },
     };
     p.pos = p.pos + p.speed * dt;
+    p.size = p.size * (1.0f - dt);
     p.life -= dt;
     if (p.life < 0) p.life = 0;
   }
