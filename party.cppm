@@ -15,6 +15,8 @@ static quack::yakki::image * g_image {};
 
 struct particle {
   dotz::vec2 pos {};
+  dotz::vec2 speed {};
+  dotz::vec2 size {};
   float life {};
 };
 static hai::array<particle> g_parts { max_particles };
@@ -29,9 +31,10 @@ static void fill_buffer(quack::instance *& i) {
   for (auto & p : g_parts) {
     *i++ = {
       .position = p.pos,
-      .size = { 0.1f },
+      .size = p.size,
       .colour = { 1.f * p.life },
     };
+    p.pos = p.pos + p.speed * dt;
     p.life -= dt;
     if (p.life < 0) p.life = 0;
   }
@@ -61,7 +64,9 @@ static void fire() {
   emit(100, [] {
     return particle {
       .pos = random_circle(0.3f),
-      .life = 0.6f + rng::randf() * 0.3f,
+      .speed = random_circle(1.3f) + dotz::vec2 { 1, 1 },
+      .size = { 0.1f + rng::randf() * 0.05f },
+      .life = 0.6f + rng::randf() * 0.4f,
     };
   });
 }
