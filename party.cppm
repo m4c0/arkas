@@ -20,7 +20,6 @@ struct particle {
 static hai::array<particle> g_parts { max_particles };
 
 static sitime::stopwatch g_time_since_last_frame {};
-static sitime::stopwatch g_time_since_last_emit {};
 static int g_last_emitted {};
 
 static void fill_buffer(quack::instance *& i) {
@@ -36,21 +35,19 @@ static void fill_buffer(quack::instance *& i) {
     p.life -= dt;
     if (p.life < 0) p.life = 0;
   }
+}
 
-  if (g_time_since_last_emit.millis() > 30) {
-    for (auto i = 0; i < max_particles; i++) {
-      auto n = (i + g_last_emitted) % max_particles;
-      if (g_parts[n].life == 0) {
-        g_parts[n] = particle {
-          .pos = { rng::randf() * 2.5f, rng::randf() * 2.5f },
-          .life = 0.5,
-        };
-        g_last_emitted = n;
-        break;
-      }
+static void on_timer() {
+  for (auto i = 0; i < max_particles; i++) {
+    auto n = (i + g_last_emitted) % max_particles;
+    if (g_parts[n].life == 0) {
+      g_parts[n] = particle {
+        .pos = { rng::randf() * 2.5f, rng::randf() * 2.5f },
+        .life = 0.5,
+      };
+      g_last_emitted = n;
+      break;
     }
-
-    g_time_since_last_emit = {};
   }
 }
 
@@ -69,5 +66,7 @@ struct init {
       r->run(g_buffer, g_image);
     };
     start();
+
+    casein::handle(casein::TIMER, on_timer);
   }
 } i;
