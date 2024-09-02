@@ -1,7 +1,5 @@
-#pragma leco app
 #pragma leco add_resource "party.png"
 export module party;
-import casein;
 import dotz;
 import hai;
 import quack;
@@ -61,33 +59,27 @@ static void emit(unsigned qty, auto && fn) {
   }
 }
 
-static void fire() {
-  emit(100, [] {
-    return particle {
-      .pos = random_circle(0.3f),
-      .speed = random_circle(1.3f) + dotz::vec2 { 1, 1 },
-      .size = { 0.1f + rng::randf() * 0.05f },
-      .life = 0.6f + rng::randf() * 0.4f,
-    };
-  });
-}
+export namespace party {
+  void setup(quack::yakki::resources * r) {
+    g_buffer = r->buffer(max_particles, fill_buffer);
+    g_buffer->pc() = { { 0 }, { 16 } };
+    g_buffer->start();
 
-struct init {
-  init() {
-    using namespace quack::yakki;
-
-    on_start = [](auto * r) {
-      g_buffer = r->buffer(max_particles, fill_buffer);
-      g_buffer->pc() = { { 0 }, { 16 } };
-      g_buffer->start();
-
-      g_image = r->image("party.png");
-    };
-    on_frame = [](auto * r) {
-      r->run(g_buffer, g_image);
-    };
-    start();
-
-    casein::handle(casein::KEY_DOWN, casein::K_SPACE, fire);
+    g_image = r->image("party.png");
   }
-} i;
+  void frame(quack::yakki::renderer * r) {
+    r->run(g_buffer, g_image);
+  }
+}
+export namespace party::fx {
+  void fire() {
+    emit(100, [] {
+      return particle {
+        .pos = random_circle(0.3f),
+        .speed = random_circle(1.3f) + dotz::vec2 { 1, 1 },
+        .size = { 0.1f + rng::randf() * 0.05f },
+        .life = 0.6f + rng::randf() * 0.4f,
+      };
+    });
+  }
+}
