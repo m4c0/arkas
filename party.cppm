@@ -37,6 +37,15 @@ static void fill_buffer(quack::instance *& i) {
   }
 }
 
+static dotz::vec2 random_circle(float max_r) {
+  auto r = rng::randf() * max_r;
+  auto th = rng::randf() * 3.14159265358979323f * 2.0f;
+
+  float x = r * dotz::sin(th);
+  float y = r * dotz::cos(th);
+  return { x, y };
+}
+
 struct emitter {
   dotz::vec2 center {};
   float radius {};
@@ -49,15 +58,12 @@ static void emit(const emitter & e) {
   for (auto i = 0; i < max_particles && qty > 0; i++) {
     auto n = (i + g_last_emitted) % max_particles;
     if (g_parts[n].life > 0) continue;
-    
-    dotz::vec2 d { rng::randf(), rng::randf() };
-    d = dotz::normalise(d) * 2.0f - 1.0f;
-    d = d * e.radius;
 
+    auto p = random_circle(e.radius);
     auto life = e.life_min + rng::randf() * (e.life_max - e.life_min);
 
     g_parts[n] = particle {
-      .pos = e.center + d,
+      .pos = e.center + p,
       .life = life,
     };
     g_last_emitted = n;
@@ -73,7 +79,7 @@ static void on_timer() {
     .count = 1,
   });
   emit({
-    .center = { -3 + rng::randf() * 0.5f, rng::randf() * 0.5f },
+    .center = { -3 + rng::randf() * 1.5f, rng::randf() * 1.5f },
     .radius = 0.3f,
     .life_min = 0.3f,
     .life_max = 0.9f,
