@@ -8,7 +8,7 @@ import quack;
 import rng;
 import sitime;
 
-static constexpr const auto max_particles = 1024;
+static constexpr const auto max_particles = 10240;
 
 static quack::yakki::buffer * g_buffer {};
 static quack::yakki::image * g_image {};
@@ -37,18 +37,37 @@ static void fill_buffer(quack::instance *& i) {
   }
 }
 
-static void on_timer() {
-  for (auto i = 0; i < max_particles; i++) {
+struct emitter {
+  dotz::vec2 center {};
+  float life {};
+  unsigned count {};
+};
+static void emit(const emitter & e) {
+  auto qty = e.count;
+  for (auto i = 0; i < max_particles && qty > 0; i++) {
     auto n = (i + g_last_emitted) % max_particles;
-    if (g_parts[n].life == 0) {
-      g_parts[n] = particle {
-        .pos = { rng::randf() * 2.5f, rng::randf() * 2.5f },
-        .life = 0.5,
-      };
-      g_last_emitted = n;
-      break;
-    }
+    if (g_parts[n].life > 0) continue;
+
+    g_parts[n] = particle {
+      .pos = e.center,
+      .life = e.life,
+    };
+    g_last_emitted = n;
+    qty--;
   }
+}
+
+static void on_timer() {
+  emit({
+    .center = { rng::randf() * 2.5f, rng::randf() * 2.5f },
+    .life = 0.5f,
+    .count = 1,
+  });
+  emit({
+    .center = { -3 + rng::randf() * 2.5f, rng::randf() * 2.5f },
+    .life = 0.5f,
+    .count = 1,
+  });
 }
 
 struct init {
