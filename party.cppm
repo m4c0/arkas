@@ -75,9 +75,17 @@ export namespace party::fx {
   void fire(dotz::vec2 center, dotz::vec2 speed) {
     emit(100, [=] {
       return particle {
-        .pos = random_circle(0.3f) + center,
-        .speed = random_circle(1.3f) + speed,
+        .pos = random_circle(0.2f) + center,
+        .speed = random_circle(3.3f) + speed,
         .size = { 0.1f + rng::randf() * 0.05f },
+        .life = 0.6f + rng::randf() * 0.4f,
+      };
+    });
+    emit(100, [=] {
+      return particle {
+        .pos = random_circle(0.5f) + center,
+        .speed = random_circle(1.3f) + speed,
+        .size = { 0.3f + rng::randf() * 0.05f },
         .life = 0.6f + rng::randf() * 0.4f,
       };
     });
