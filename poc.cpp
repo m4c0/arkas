@@ -42,10 +42,12 @@ static void update_data() {
 }
 
 static void move_player(float dt) {
+  static constexpr const auto speed = 10.0;
+
   auto d = input::left_stick();
   if (dotz::length(d) < 0.001) return;
 
-  player_pos = dotz::clamp(player_pos + d * dt * 10.0, { -8 }, { 7 });
+  player_pos = dotz::clamp(player_pos + d * dt * speed, { -8 }, { 7 });
 }
 
 static void shoot(float dt) {
