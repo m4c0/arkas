@@ -46,6 +46,7 @@ static void move_player(float dt) {
 
   auto d = input::left_stick();
   if (dotz::length(d) < 0.001) return;
+  d = dotz::normalise(d);
 
   player_pos = dotz::clamp(player_pos + d * dt * speed, { -8 }, { 7 });
 }
