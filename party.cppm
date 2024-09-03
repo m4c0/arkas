@@ -6,6 +6,7 @@ import quack;
 import rng;
 import sitime;
 
+static constexpr const quack::upc game_area { {}, { 16 } };
 static constexpr const auto max_particles = 10240;
 
 static quack::yakki::buffer * g_buffer {};
@@ -62,7 +63,8 @@ static void emit(unsigned qty, auto && fn) {
 export namespace party {
   void setup(quack::yakki::resources * r) {
     g_buffer = r->buffer(max_particles, fill_buffer);
-    g_buffer->pc() = { { 0 }, { 16 } };
+    g_buffer->pc() = game_area;
+    g_buffer->scissor() = { { -8 }, { 16 }, &game_area };
     g_buffer->start();
 
     g_image = r->image("party.png");
