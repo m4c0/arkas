@@ -15,11 +15,13 @@ static quack::yakki::buffer * g_buffer {};
 static quack::yakki::image * g_image {};
 
 struct particle {
+  dotz::ivec2 sprite {};
   dotz::vec2 pos {};
   dotz::vec2 speed {};
   dotz::vec2 size {};
   float rot {};
   float rot_speed {};
+  float alpha_mult {};
   float life {};
 };
 static hai::array<particle> g_parts { max_particles };
@@ -35,16 +37,16 @@ static void fill_buffer(quack::instance *& i) {
     *i++ = {
       .position = p.pos,
       .size = p.size,
-      .uv0 = { 1.f / 16.f, 1.0f / 16.0f },
-      .uv1 = { 2.f / 16.f, 2.0f / 16.0f },
-      .multiplier = { 1.f, 1.f, 1.f, 1.f * p.life },
+      .uv0 = p.sprite / 16.f,
+      .uv1 = (p.sprite + 1) / 16.f,
+      .multiplier = { 1.f, 1.f, 1.f, p.alpha_mult * p.life },
       .rotation = { p.rot, p.size.x / 2.f, p.size.y / 2.f },
     };
     p.pos = p.pos + p.speed * dt;
     p.size = p.size * (1.0f - dt);
     p.rot += dt * p.rot_speed;
     p.life -= dt;
-    if (p.life < 0) p.life = 0;
+    if (p.life < 0) p = {};
   }
 }
 
@@ -85,22 +87,39 @@ export namespace party::fx {
   void fire(dotz::vec2 center, dotz::vec2 speed) {
     emit(100, [=] {
       return particle {
+        .sprite = { 0, 1 },
         .pos = random_circle(0.2f) + center,
         .speed = random_circle(3.3f) + speed,
         .size = { 0.1f + rng::randf() * 0.05f },
         .rot = rng::randf() * 360.f,
         .rot_speed = rng::randf() * 2000.f - 1000.f,
+        .alpha_mult = 1.0f,
         .life = 0.6f + rng::randf() * 0.4f,
       };
     });
     emit(100, [=] {
       return particle {
+        .sprite = { 1, 1 },
         .pos = random_circle(0.5f) + center,
         .speed = random_circle(1.3f) + speed,
         .size = { 0.3f + rng::randf() * 0.05f },
         .rot = rng::randf() * 360.f,
         .rot_speed = rng::randf() * 2000.f - 1000.f,
+        .alpha_mult = 1.0f,
         .life = 0.6f + rng::randf() * 0.4f,
+      };
+    });
+  }
+  void flash(dotz::vec2 center) {
+    emit(3, [=] {
+      return particle {
+        .sprite = { 2, 1 },
+        .pos = center,
+        .size = 0.8f,
+        .rot = rng::rand(32) * 360.f / 32.f,
+        .rot_speed = rng::randf() * 200.0f - 100.0f,
+        .alpha_mult = 10.0f,
+        .life = 0.2f,
       };
     });
   }
