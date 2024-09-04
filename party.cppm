@@ -8,6 +8,8 @@ import sitime;
 
 static constexpr const quack::upc game_area { {}, { 16 } };
 static constexpr const auto max_particles = 10240;
+static constexpr const auto pi = 3.14159265358979323f;
+static constexpr const auto two_pi = 2.f * pi;
 
 static quack::yakki::buffer * g_buffer {};
 static quack::yakki::image * g_image {};
@@ -16,6 +18,8 @@ struct particle {
   dotz::vec2 pos {};
   dotz::vec2 speed {};
   dotz::vec2 size {};
+  float rot {};
+  float rot_speed {};
   float life {};
 };
 static hai::array<particle> g_parts { max_particles };
@@ -34,9 +38,11 @@ static void fill_buffer(quack::instance *& i) {
       .uv0 = { 1.f / 16.f, 1.0f / 16.0f },
       .uv1 = { 2.f / 16.f, 2.0f / 16.0f },
       .multiplier = { 1.f, 1.f, 1.f, 1.f * p.life },
+      .rotation = { p.rot, p.size.x / 2.f, p.size.y / 2.f },
     };
     p.pos = p.pos + p.speed * dt;
     p.size = p.size * (1.0f - dt);
+    p.rot += dt * p.rot_speed;
     p.life -= dt;
     if (p.life < 0) p.life = 0;
   }
@@ -44,7 +50,7 @@ static void fill_buffer(quack::instance *& i) {
 
 static dotz::vec2 random_circle(float max_r) {
   auto r = rng::randf() * max_r;
-  auto th = rng::randf() * 3.14159265358979323f * 2.0f;
+  auto th = rng::randf() * two_pi;
 
   float x = r * dotz::sin(th);
   float y = r * dotz::cos(th);
@@ -82,6 +88,8 @@ export namespace party::fx {
         .pos = random_circle(0.2f) + center,
         .speed = random_circle(3.3f) + speed,
         .size = { 0.1f + rng::randf() * 0.05f },
+        .rot = rng::randf() * 360.f,
+        .rot_speed = rng::randf() * 2000.f - 1000.f,
         .life = 0.6f + rng::randf() * 0.4f,
       };
     });
@@ -90,6 +98,8 @@ export namespace party::fx {
         .pos = random_circle(0.5f) + center,
         .speed = random_circle(1.3f) + speed,
         .size = { 0.3f + rng::randf() * 0.05f },
+        .rot = rng::randf() * 360.f,
+        .rot_speed = rng::randf() * 2000.f - 1000.f,
         .life = 0.6f + rng::randf() * 0.4f,
       };
     });
