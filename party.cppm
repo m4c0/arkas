@@ -31,8 +31,8 @@ static void fill_buffer(quack::instance *& i) {
     *i++ = {
       .position = p.pos,
       .size = p.size,
-      .uv0 = { 0.f, 1.0f / 16.0f },
-      .uv1 = { 1.f / 16.f, 2.0f / 16.0f },
+      .uv0 = { 1.f / 16.f, 1.0f / 16.0f },
+      .uv1 = { 2.f / 16.f, 2.0f / 16.0f },
       .multiplier = { 1.f, 1.f, 1.f, 1.f * p.life },
     };
     p.pos = p.pos + p.speed * dt;
