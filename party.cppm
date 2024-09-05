@@ -119,7 +119,7 @@ export namespace party::fx {
         .rot = rng::randf() * 360.0f,
         .rot_speed = rng::randf() * 200.0f - 100.0f,
         .alpha_mult = 10.0f,
-        .life = 0.2f,
+        .life = 0.1f,
       };
     });
     emit(3, [=] {
@@ -130,7 +130,7 @@ export namespace party::fx {
         .rot = rng::rand(8) * 360.f / 8.0f,
         .rot_speed = rng::randf() * 200.0f - 100.0f,
         .alpha_mult = 10.0f,
-        .life = 0.2f,
+        .life = 0.1f,
       };
     });
   }

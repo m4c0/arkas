@@ -61,6 +61,7 @@ static void shoot(float dt) {
 
     g_gun_cooldown = 0;
     b = { .pos = player_pos, .active = true };
+    party::fx::flash(player_pos + dotz::vec2 { 0.5f, 0.f });
     break;
   }
 }
