@@ -111,12 +111,23 @@ export namespace party::fx {
     });
   }
   void flash(dotz::vec2 center) {
+    emit(1, [=] {
+      return particle {
+        .sprite = { 2, 1 },
+        .pos = center - 0.4f,
+        .size = 0.8f,
+        .rot = rng::randf() * 360.0f,
+        .rot_speed = rng::randf() * 200.0f - 100.0f,
+        .alpha_mult = 10.0f,
+        .life = 0.2f,
+      };
+    });
     emit(3, [=] {
       return particle {
         .sprite = { 2, 1 },
-        .pos = center,
-        .size = 0.8f,
-        .rot = rng::rand(32) * 360.f / 32.f,
+        .pos = center - 0.2f,
+        .size = 0.4f,
+        .rot = rng::rand(8) * 360.f / 8.0f,
         .rot_speed = rng::randf() * 200.0f - 100.0f,
         .alpha_mult = 10.0f,
         .life = 0.2f,
