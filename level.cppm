@@ -106,20 +106,20 @@ static void init_enemies() {
   enemies::reset([](auto * e) {
     constexpr const auto sy = atlas::min_area_y - 1;
 
-    *e++ = { .spawn_time = 2, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 2.0f, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
     *e++ = { .spawn_time = 2.5f, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
-    *e++ = { .spawn_time = 3, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
+    *e++ = { .spawn_time = 3.0f, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
     *e++ = { .spawn_time = 3.5f, .s0 = { -0.5f, sy }, .v0 = { 0, 5 } };
 
-    *e++ = { .spawn_time = 5.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-    *e++ = { .spawn_time = 5.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-    *e++ = { .spawn_time = 6.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
-    *e++ = { .spawn_time = 6.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 7.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 7.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 8.0f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
+    *e++ = { .spawn_time = 8.5f, .s0 = { -5.f, sy }, .v0 = { 0, 5 }, .a = { 1, 0 } };
 
-    *e++ = { .spawn_time = 8.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-    *e++ = { .spawn_time = 8.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-    *e++ = { .spawn_time = 9.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
-    *e++ = { .spawn_time = 9.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 10.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 10.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 11.0f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
+    *e++ = { .spawn_time = 11.5f, .s0 = { 5.f, sy }, .v0 = { 0, 5 }, .a = { -1, 0 } };
   });
 }
 
